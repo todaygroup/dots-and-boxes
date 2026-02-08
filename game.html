@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1D3557">
+    <title>Dots & Boxes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #FFD93D 0%, #F4A261 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 메인 메뉴 */
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .main-menu.hidden {
+            display: none;
+        }
+
+        .logo {
+            font-size: clamp(2em, 8vw, 3.5em);
+            font-weight: bold;
+            color: #E63946;
+            text-shadow: 3px 3px 0 #1D3557, -1px -1px 0 #457B9D;
+            margin-bottom: 8vh;
+            text-align: center;
+        }
+
+        .logo span {
+            color: #457B9D;
+        }
+
+        .menu-btn {
+            width: min(280px, 85vw);
+            padding: clamp(14px, 4vw, 20px);
+            margin: 8px;
+            font-size: clamp(1em, 4vw, 1.4em);
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        .menu-btn.primary {
+            background: linear-gradient(180deg, #457B9D 0%, #1D3557 100%);
+            color: white;
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(180deg, #E63946 0%, #B5232E 100%);
+            color: white;
+        }
+
+        /* 설정 패널 */
+        .settings-panel {
+            background: white;
+            border-radius: 16px;
+            padding: clamp(15px, 4vw, 25px);
+            margin-top: 5vh;
+            width: min(320px, 90vw);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .setting-group {
+            margin-bottom: clamp(12px, 3vw, 18px);
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-group label {
+            display: block;
+            font-weight: bold;
+            color: #1D3557;
+            margin-bottom: 6px;
+            font-size: clamp(0.85em, 3.5vw, 1em);
+        }
+
+        .setting-group select {
+            width: 100%;
+            padding: clamp(10px, 3vw, 14px);
+            border: 2px solid #457B9D;
+            border-radius: 8px;
+            font-size: clamp(0.9em, 3.5vw, 1em);
+            cursor: pointer;
+            background: white;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23457B9D' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        /* 게임 화면 */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
+        /* 상단 스코어바 */
+        .score-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(10px, 3vw, 18px) clamp(12px, 4vw, 24px);
+            padding-top: max(env(safe-area-inset-top), clamp(10px, 3vw, 18px));
+            background: #1D3557;
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            text-align: center;
+            color: white;
+            min-width: clamp(70px, 20vw, 110px);
+            transition: transform 0.2s;
+        }
+
+        .player-info.active {
+            transform: scale(1.08);
+        }
+
+        .player-info .name {
+            font-size: clamp(0.65em, 2.5vw, 0.9em);
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .player-info .score {
+            font-size: clamp(1.8em, 8vw, 3em);
+            font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .player-info.p1 .score {
+            color: #457B9D;
+        }
+
+        .player-info.p2 .score {
+            color: #E63946;
+        }
+
+        .turn-indicator {
+            text-align: center;
+            color: white;
+        }
+
+        .turn-indicator .label {
+            font-size: clamp(0.6em, 2vw, 0.8em);
+            opacity: 0.8;
+        }
+
+        .turn-indicator .dot {
+            width: clamp(20px, 6vw, 32px);
+            height: clamp(20px, 6vw, 32px);
+            border-radius: 50%;
+            margin: 4px auto;
+            transition: background 0.3s;
+        }
+
+        .turn-indicator .dot.p1 {
+            background: #457B9D;
+        }
+
+        .turn-indicator .dot.p2 {
+            background: #E63946;
+        }
+
+        /* 게임 보드 영역 */
+        .board-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #FFFBEB;
+            padding: clamp(10px, 3vw, 20px);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .board-container {
+            position: relative;
+        }
+
+        /* Dots */
+        .dot {
+            position: absolute;
+            background: #333;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        /* Edges */
+        .edge {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .edge:active:not(.filled) {
+            opacity: 0.5;
+        }
+
+        .edge.h-edge {
+            height: var(--edge-thickness);
+            background: #ddd;
+            border-radius: calc(var(--edge-thickness) / 2);
+        }
+
+        .edge.v-edge {
+            width: var(--edge-thickness);
+            background: #ddd;
+            border-radius: calc(var(--edge-thickness) / 2);
+        }
+
+        .edge.d-edge {
+            height: var(--edge-thickness);
+            background: #ddd;
+            border-radius: calc(var(--edge-thickness) / 2);
+            transform-origin: left center;
+        }
+
+        .edge.filled.p0 {
+            background: linear-gradient(135deg, #457B9D 0%, #1D3557 100%);
+            box-shadow: 0 2px 6px rgba(69, 123, 157, 0.4);
+        }
+
+        .edge.filled.p1 {
+            background: linear-gradient(135deg, #E63946 0%, #B5232E 100%);
+            box-shadow: 0 2px 6px rgba(230, 57, 70, 0.4);
+        }
+
+        /* Shapes (boxes/triangles) */
+        .shape {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: clamp(0.8em, 3vw, 1.2em);
+        }
+
+        .shape.completed.p0 {
+            background: rgba(69, 123, 157, 0.4);
+        }
+
+        .shape.completed.p1 {
+            background: rgba(230, 57, 70, 0.4);
+        }
+
+        .shape.triangle {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .shape.triangle.inverted {
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        }
+
+        /* 하단 컨트롤바 */
+        .control-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: clamp(8px, 2vw, 15px);
+            padding-bottom: max(env(safe-area-inset-bottom), clamp(8px, 2vw, 15px));
+            background: #1D3557;
+            flex-shrink: 0;
+        }
+
+        .control-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: clamp(6px, 2vw, 12px) clamp(12px, 4vw, 24px);
+            transition: transform 0.15s;
+            border-radius: 8px;
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn .icon {
+            font-size: clamp(1.2em, 5vw, 1.8em);
+            margin-bottom: 2px;
+        }
+
+        .control-btn .text {
+            font-size: clamp(0.6em, 2.5vw, 0.8em);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* 승리 오버레이 */
+        .winner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .winner-overlay.show {
+            display: flex;
+        }
+
+        .winner-box {
+            background: white;
+            padding: clamp(25px, 6vw, 45px) clamp(30px, 8vw, 60px);
+            border-radius: 20px;
+            text-align: center;
+            animation: popIn 0.4s ease;
+            max-width: 90vw;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .winner-box h2 {
+            font-size: clamp(1.4em, 6vw, 2.2em);
+            margin-bottom: 12px;
+            color: #1D3557;
+        }
+
+        .winner-box .final-score {
+            font-size: clamp(2em, 10vw, 3.5em);
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .winner-box button {
+            padding: clamp(10px, 3vw, 16px) clamp(24px, 6vw, 40px);
+            font-size: clamp(0.9em, 3.5vw, 1.2em);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .btn-restart {
+            background: #457B9D;
+            color: white;
+        }
+
+        .btn-menu {
+            background: #E63946;
+            color: white;
+        }
+
+        .btn-restart:active,
+        .btn-menu:active {
+            opacity: 0.8;
+        }
+
+        /* 가로 모드 최적화 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .score-bar {
+                padding: 8px 20px;
+            }
+
+            .player-info .score {
+                font-size: clamp(1.5em, 6vh, 2.2em);
+            }
+
+            .control-bar {
+                padding: 6px;
+            }
+
+            .control-btn .icon {
+                font-size: 1.3em;
+            }
+
+            .control-btn .text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 메인 메뉴 -->
+    <div class="main-menu" id="mainMenu">
+        <div class="logo">DOTS <span>&</span> BOXES</div>
+
+        <button class="menu-btn primary" onclick="startGame('single')">🎮 SINGLE PLAYER</button>
+        <button class="menu-btn secondary" onclick="startGame('multi')">👥 MULTIPLAYER</button>
+
+        <div class="settings-panel">
+            <div class="setting-group">
+                <label>게임 모드</label>
+                <select id="gameMode">
+                    <option value="square">□ 사각형 모드</option>
+                    <option value="triangle">△ 삼각형 모드</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>난이도 (보드 크기)</label>
+                <select id="difficulty">
+                    <option value="3x3">3×3 (쉬움)</option>
+                    <option value="4x4" selected>4×4 (보통)</option>
+                    <option value="5x5">5×5</option>
+                    <option value="6x6">6×6</option>
+                    <option value="7x7">7×7</option>
+                    <option value="8x8">8×8</option>
+                    <option value="8x10">8×10</option>
+                    <option value="10x12">10×12</option>
+                    <option value="10x16">10×16 (어려움)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>보드 모양</label>
+                <select id="boardShape">
+                    <option value="rectangle">▢ 직사각형</option>
+                    <option value="star">★ 별 모양</option>
+                    <option value="circle">● 원형</option>
+                    <option value="heart">♥ 하트</option>
+                    <option value="flower">✿ 꽃</option>
+                    <option value="car">🚗 자동차</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div class="game-screen" id="gameScreen">
+        <div class="score-bar">
+            <div class="player-info p1 active" id="player1Info">
+                <div class="name">PLAYER 1</div>
+                <div class="score" id="score1">0</div>
+            </div>
+            <div class="turn-indicator">
+                <div class="label">TURN</div>
+                <div class="dot p1" id="turnDot"></div>
+            </div>
+            <div class="player-info p2" id="player2Info">
+                <div class="name" id="player2Name">COMPUTER</div>
+                <div class="score" id="score2">0</div>
+            </div>
+        </div>
+
+        <div class="board-area" id="boardArea">
+            <div class="board-container" id="boardContainer"></div>
+        </div>
+
+        <div class="control-bar">
+            <button class="control-btn" onclick="goToMenu()">
+                <span class="icon">🏠</span>
+                <span class="text">HOME</span>
+            </button>
+            <button class="control-btn" onclick="restartGame()">
+                <span class="icon">🔄</span>
+                <span class="text">RESTART</span>
+            </button>
+            <button class="control-btn" onclick="undoMove()">
+                <span class="icon">↩️</span>
+                <span class="text">UNDO</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 승리 오버레이 -->
+    <div class="winner-overlay" id="winnerOverlay">
+        <div class="winner-box">
+            <h2 id="winnerTitle">🎉 게임 종료!</h2>
+            <div class="final-score" id="finalScore"></div>
+            <button class="btn-restart" onclick="restartGame()">다시 하기</button>
+            <button class="btn-menu" onclick="goToMenu()">메뉴로</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== 게임 설정 =====
+        let config = {
+            mode: 'square',
+            width: 4,
+            height: 4,
+            shape: 'rectangle',
+            isSinglePlayer: true
+        };
+
+        let game = null;
+        let history = [];
+
+        // ===== 크기 계산 (화면의 85% 채우기) =====
+        function calculateSizes(width, height) {
+            const boardArea = document.getElementById('boardArea');
+            // 사용 가능한 공간의 85% 사용
+            const availableWidth = (boardArea ? boardArea.clientWidth : window.innerWidth) * 0.85;
+            const availableHeight = (boardArea ? boardArea.clientHeight : window.innerHeight * 0.7) * 0.85;
+
+            // 보드가 필요한 셀 수
+            const cellsX = width - 1;
+            const cellsY = height - 1;
+
+            // 각 축에서 사용 가능한 spacing 계산 (dot 사이 간격)
+            // 최소 dot 크기는 spacing의 1/4로 설정
+            const maxSpacingX = availableWidth / (cellsX + 0.25);
+            const maxSpacingY = availableHeight / (cellsY + 0.25);
+
+            // 더 제한적인 축에 맞춤
+            let spacing = Math.floor(Math.min(maxSpacingX, maxSpacingY));
+
+            // 최대/최소 spacing 제한
+            spacing = Math.max(25, Math.min(spacing, 120));
+
+            // dot 크기는 spacing에 비례
+            let dotSize = Math.max(8, Math.floor(spacing * 0.3));
+            dotSize = Math.min(dotSize, 24); // 최대 dot 크기
+
+            // 선 굵기도 spacing에 비례
+            let edgeThickness = Math.max(4, Math.floor(spacing * 0.15));
+            edgeThickness = Math.min(edgeThickness, 12); // 최대 선 굵기
+
+            return { dotSize, spacing, edgeThickness };
+        }
+
+        // ===== 게임 로직 =====
+        function createSquareGame(width, height) {
+            const boxes = [];
+            for (let r = 0; r < height - 1; r++) {
+                const row = [];
+                for (let c = 0; c < width - 1; c++) {
+                    row.push({ completed: false, owner: null });
+                }
+                boxes.push(row);
+            }
+            return {
+                mode: 'square', width, height,
+                edges: [], edgeOwners: {}, boxes,
+                scores: [0, 0], currentPlayer: 0, winner: null
+            };
+        }
+
+        function createTriangleGame(width, height) {
+            const triangles = [];
+            for (let r = 0; r < height - 1; r++) {
+                const row = [];
+                for (let c = 0; c < width - 1; c++) {
+                    row.push({
+                        upper: { completed: false, owner: null },
+                        lower: { completed: false, owner: null }
+                    });
+                }
+                triangles.push(row);
+            }
+            return {
+                mode: 'triangle', width, height,
+                edges: [], edgeOwners: {}, triangles,
+                scores: [0, 0], currentPlayer: 0, winner: null
+            };
+        }
+
+        function getEdgeKey(type, row, col) { return `${type}-${row}-${col}`; }
+        function isValidMove(game, edgeKey) { return !game.edges.includes(edgeKey); }
+
+        function makeMoveSquare(game, edgeKey) {
+            if (!isValidMove(game, edgeKey)) return { isValid: false };
+            const newGame = JSON.parse(JSON.stringify(game));
+            newGame.edges.push(edgeKey);
+            newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
+
+            const completedBoxes = [];
+            const edges = new Set(newGame.edges);
+
+            function isBoxComplete(r, c) {
+                return edges.has(`h-${r}-${c}`) && edges.has(`h-${r + 1}-${c}`) &&
+                    edges.has(`v-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
+            }
+
+            function claimBoxEdges(r, c, owner) {
+                [`h-${r}-${c}`, `h-${r + 1}-${c}`, `v-${r}-${c}`, `v-${r}-${c + 1}`]
+                    .forEach(k => newGame.edgeOwners[k] = owner);
+            }
+
+            const [type, rowStr, colStr] = edgeKey.split('-');
+            const row = parseInt(rowStr), col = parseInt(colStr);
+
+            if (type === 'h') {
+                if (row < newGame.height - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
+                    newGame.boxes[row][col].completed = true;
+                    newGame.boxes[row][col].owner = newGame.currentPlayer;
+                    completedBoxes.push({ row, col });
+                    claimBoxEdges(row, col, newGame.currentPlayer);
+                }
+                if (row > 0 && newGame.boxes[row - 1]?.[col] && !newGame.boxes[row - 1][col].completed && isBoxComplete(row - 1, col)) {
+                    newGame.boxes[row - 1][col].completed = true;
+                    newGame.boxes[row - 1][col].owner = newGame.currentPlayer;
+                    completedBoxes.push({ row: row - 1, col });
+                    claimBoxEdges(row - 1, col, newGame.currentPlayer);
+                }
+            } else {
+                if (col < newGame.width - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
+                    newGame.boxes[row][col].completed = true;
+                    newGame.boxes[row][col].owner = newGame.currentPlayer;
+                    completedBoxes.push({ row, col });
+                    claimBoxEdges(row, col, newGame.currentPlayer);
+                }
+                if (col > 0 && newGame.boxes[row]?.[col - 1] && !newGame.boxes[row][col - 1].completed && isBoxComplete(row, col - 1)) {
+                    newGame.boxes[row][col - 1].completed = true;
+                    newGame.boxes[row][col - 1].owner = newGame.currentPlayer;
+                    completedBoxes.push({ row, col: col - 1 });
+                    claimBoxEdges(row, col - 1, newGame.currentPlayer);
+                }
+            }
+
+            if (completedBoxes.length > 0) {
+                newGame.scores[newGame.currentPlayer] += completedBoxes.length;
+            } else {
+                newGame.currentPlayer = 1 - newGame.currentPlayer;
+            }
+
+            const totalBoxes = (newGame.width - 1) * (newGame.height - 1);
+            if (newGame.scores[0] + newGame.scores[1] === totalBoxes) {
+                newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
+            }
+
+            return { newGame, completedBoxes, isValid: true };
+        }
+
+        function makeMoveTriangle(game, edgeKey) {
+            if (!isValidMove(game, edgeKey)) return { isValid: false };
+            const newGame = JSON.parse(JSON.stringify(game));
+            newGame.edges.push(edgeKey);
+            newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
+
+            const completedTriangles = [];
+            const edges = new Set(newGame.edges);
+
+            function isUpperTriComplete(r, c) {
+                return edges.has(`h-${r}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c}`);
+            }
+            function isLowerTriComplete(r, c) {
+                return edges.has(`h-${r + 1}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
+            }
+
+            const [type, rowStr, colStr] = edgeKey.split('-');
+            const row = parseInt(rowStr), col = parseInt(colStr);
+            const cellsToCheck = [];
+
+            if (type === 'h') {
+                if (row < newGame.height - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                if (row > 0) cellsToCheck.push({ r: row - 1, c: col, tri: 'lower' });
+            } else if (type === 'v') {
+                if (col < newGame.width - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                if (col > 0) cellsToCheck.push({ r: row, c: col - 1, tri: 'lower' });
+            } else if (type === 'd') {
+                cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                cellsToCheck.push({ r: row, c: col, tri: 'lower' });
+            }
+
+            for (const cell of cellsToCheck) {
+                const { r, c, tri } = cell;
+                if (r < 0 || r >= newGame.height - 1 || c < 0 || c >= newGame.width - 1) continue;
+                const triObj = newGame.triangles[r][c][tri];
+                if (triObj.completed) continue;
+                const isComplete = tri === 'upper' ? isUpperTriComplete(r, c) : isLowerTriComplete(r, c);
+                if (isComplete) {
+                    triObj.completed = true;
+                    triObj.owner = newGame.currentPlayer;
+                    completedTriangles.push({ r, c, tri });
+                }
+            }
+
+            if (completedTriangles.length > 0) {
+                newGame.scores[newGame.currentPlayer] += completedTriangles.length;
+            } else {
+                newGame.currentPlayer = 1 - newGame.currentPlayer;
+            }
+
+            const totalTris = (newGame.width - 1) * (newGame.height - 1) * 2;
+            if (newGame.scores[0] + newGame.scores[1] === totalTris) {
+                newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
+            }
+
+            return { newGame, completedTriangles, isValid: true };
+        }
+
+        // ===== AI =====
+        function getAIMove(game) {
+            const validEdges = [];
+            if (game.mode === 'square') {
+                for (let r = 0; r < game.height; r++)
+                    for (let c = 0; c < game.width - 1; c++)
+                        if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
+                for (let r = 0; r < game.height - 1; r++)
+                    for (let c = 0; c < game.width; c++)
+                        if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
+                for (const edge of validEdges) {
+                    const result = makeMoveSquare(game, edge);
+                    if (result.isValid && result.completedBoxes.length > 0) return edge;
+                }
+            } else {
+                for (let r = 0; r < game.height; r++)
+                    for (let c = 0; c < game.width - 1; c++)
+                        if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
+                for (let r = 0; r < game.height - 1; r++)
+                    for (let c = 0; c < game.width; c++)
+                        if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
+                for (let r = 0; r < game.height - 1; r++)
+                    for (let c = 0; c < game.width - 1; c++)
+                        if (isValidMove(game, `d-${r}-${c}`)) validEdges.push(`d-${r}-${c}`);
+                for (const edge of validEdges) {
+                    const result = makeMoveTriangle(game, edge);
+                    if (result.isValid && result.completedTriangles?.length > 0) return edge;
+                }
+            }
+            return validEdges[Math.floor(Math.random() * validEdges.length)];
+        }
+
+        // ===== 보드 모양 마스크 =====
+        function getShapeMask(width, height, shape) {
+            const mask = [];
+            for (let r = 0; r < height; r++) {
+                mask[r] = [];
+                for (let c = 0; c < width; c++) mask[r][c] = true;
+            }
+            if (shape === 'rectangle') return mask;
+
+            const cx = (width - 1) / 2, cy = (height - 1) / 2;
+            const maxR = Math.min(cx, cy);
+
+            for (let r = 0; r < height; r++) {
+                for (let c = 0; c < width; c++) {
+                    const dx = c - cx, dy = r - cy;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+
+                    if (shape === 'circle') mask[r][c] = dist <= maxR + 0.5;
+                    else if (shape === 'star') mask[r][c] = dist <= maxR * (0.5 + 0.5 * Math.abs(Math.sin(angle * 2.5))) + 0.5;
+                    else if (shape === 'heart') {
+                        const x = dx / maxR, y = (cy - r) / maxR;
+                        mask[r][c] = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y <= 0.3;
+                    }
+                    else if (shape === 'flower') mask[r][c] = dist <= maxR * (0.5 + 0.4 * Math.abs(Math.cos(angle * 3))) + 0.3;
+                    else if (shape === 'car') {
+                        const relY = r / (height - 1), relX = c / (width - 1);
+                        const isBody = relY > 0.3 && relY < 0.85;
+                        const isRoof = relY >= 0.15 && relY <= 0.35 && relX > 0.25 && relX < 0.75;
+                        const isWheel = relY >= 0.75 && (relX < 0.25 || relX > 0.75);
+                        mask[r][c] = (isBody || isRoof) && !isWheel;
+                    }
+                }
+            }
+            return mask;
+        }
+
+        // ===== 렌더링 =====
+        function renderBoard() {
+            const container = document.getElementById('boardContainer');
+            container.innerHTML = '';
+
+            const sizes = calculateSizes(game.width, game.height);
+            const { dotSize, spacing, edgeThickness } = sizes;
+            container.style.setProperty('--edge-thickness', edgeThickness + 'px');
+
+            const boardWidth = (game.width - 1) * spacing + dotSize;
+            const boardHeight = (game.height - 1) * spacing + dotSize;
+            container.style.width = boardWidth + 'px';
+            container.style.height = boardHeight + 'px';
+
+            const mask = getShapeMask(game.width, game.height, config.shape);
+
+            // Dots
+            for (let r = 0; r < game.height; r++) {
+                for (let c = 0; c < game.width; c++) {
+                    if (!mask[r][c]) continue;
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    dot.style.cssText = `width:${dotSize}px;height:${dotSize}px;left:${c * spacing}px;top:${r * spacing}px`;
+                    container.appendChild(dot);
+                }
+            }
+
+            // Edges & Shapes
+            if (game.mode === 'square') {
+                for (let r = 0; r < game.height; r++) {
+                    for (let c = 0; c < game.width - 1; c++) {
+                        if (!mask[r][c] || !mask[r][c + 1]) continue;
+                        const key = `h-${r}-${c}`;
+                        const edge = document.createElement('div');
+                        edge.className = 'edge h-edge';
+                        edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
+                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                        else edge.onclick = () => handleEdgeClick(key);
+                        container.appendChild(edge);
+                    }
+                }
+                for (let r = 0; r < game.height - 1; r++) {
+                    for (let c = 0; c < game.width; c++) {
+                        if (!mask[r][c] || !mask[r + 1][c]) continue;
+                        const key = `v-${r}-${c}`;
+                        const edge = document.createElement('div');
+                        edge.className = 'edge v-edge';
+                        edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
+                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                        else edge.onclick = () => handleEdgeClick(key);
+                        container.appendChild(edge);
+                    }
+                }
+                for (let r = 0; r < game.height - 1; r++) {
+                    for (let c = 0; c < game.width - 1; c++) {
+                        if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
+                        const box = game.boxes[r][c];
+                        if (box.completed) {
+                            const shape = document.createElement('div');
+                            shape.className = `shape completed p${box.owner}`;
+                            shape.style.cssText = `width:${spacing - dotSize}px;height:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
+                            shape.textContent = box.owner === 0 ? '●' : '○';
+                            container.appendChild(shape);
+                        }
+                    }
+                }
+            } else {
+                // Triangle mode edges
+                for (let r = 0; r < game.height; r++) {
+                    for (let c = 0; c < game.width - 1; c++) {
+                        if (!mask[r][c] || !mask[r][c + 1]) continue;
+                        const key = `h-${r}-${c}`;
+                        const edge = document.createElement('div');
+                        edge.className = 'edge h-edge';
+                        edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
+                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                        else edge.onclick = () => handleEdgeClick(key);
+                        container.appendChild(edge);
+                    }
+                }
+                for (let r = 0; r < game.height - 1; r++) {
+                    for (let c = 0; c < game.width; c++) {
+                        if (!mask[r][c] || !mask[r + 1][c]) continue;
+                        const key = `v-${r}-${c}`;
+                        const edge = document.createElement('div');
+                        edge.className = 'edge v-edge';
+                        edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
+                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                        else edge.onclick = () => handleEdgeClick(key);
+                        container.appendChild(edge);
+                    }
+                }
+                for (let r = 0; r < game.height - 1; r++) {
+                    for (let c = 0; c < game.width - 1; c++) {
+                        if (!mask[r][c] || !mask[r + 1][c + 1]) continue;
+                        const key = `d-${r}-${c}`;
+                        const edge = document.createElement('div');
+                        edge.className = 'edge d-edge';
+                        const diagLen = Math.sqrt(2) * (spacing - dotSize);
+                        edge.style.cssText = `width:${diagLen}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2}px;transform:rotate(45deg)`;
+                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                        else edge.onclick = () => handleEdgeClick(key);
+                        container.appendChild(edge);
+                    }
+                }
+                // Triangles
+                for (let r = 0; r < game.height - 1; r++) {
+                    for (let c = 0; c < game.width - 1; c++) {
+                        if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
+                        const triCell = game.triangles[r][c];
+                        if (triCell.upper.completed) {
+                            const shape = document.createElement('div');
+                            shape.className = `shape triangle completed p${triCell.upper.owner}`;
+                            shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
+                            container.appendChild(shape);
+                        }
+                        if (triCell.lower.completed) {
+                            const shape = document.createElement('div');
+                            shape.className = `shape triangle inverted completed p${triCell.lower.owner}`;
+                            shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize + (spacing - dotSize) / 2}px`;
+                            container.appendChild(shape);
+                        }
+                    }
+                }
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('score1').textContent = game.scores[0];
+            document.getElementById('score2').textContent = game.scores[1];
+            document.getElementById('player1Info').classList.toggle('active', game.currentPlayer === 0);
+            document.getElementById('player2Info').classList.toggle('active', game.currentPlayer === 1);
+            document.getElementById('turnDot').className = 'dot p' + (game.currentPlayer + 1);
+            document.getElementById('player2Name').textContent = config.isSinglePlayer ? 'COMPUTER' : 'PLAYER 2';
+            if (game.winner !== null) showWinner();
+        }
+
+        function handleEdgeClick(edgeKey) {
+            if (game.winner !== null) return;
+            if (config.isSinglePlayer && game.currentPlayer === 1) return;
+            history.push(JSON.parse(JSON.stringify(game)));
+            const result = game.mode === 'square' ? makeMoveSquare(game, edgeKey) : makeMoveTriangle(game, edgeKey);
+            if (result.isValid) {
+                game = result.newGame;
+                renderBoard();
+                if (config.isSinglePlayer && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
+            }
+        }
+
+        function aiTurn() {
+            if (game.winner !== null) return;
+            const move = getAIMove(game);
+            if (!move) return;
+            history.push(JSON.parse(JSON.stringify(game)));
+            const result = game.mode === 'square' ? makeMoveSquare(game, move) : makeMoveTriangle(game, move);
+            if (result.isValid) {
+                game = result.newGame;
+                renderBoard();
+                const hasCompleted = game.mode === 'square' ? result.completedBoxes?.length > 0 : result.completedTriangles?.length > 0;
+                if (hasCompleted && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
+            }
+        }
+
+        function startGame(type) {
+            config.isSinglePlayer = (type === 'single');
+            config.mode = document.getElementById('gameMode').value;
+            config.shape = document.getElementById('boardShape').value;
+            const [w, h] = document.getElementById('difficulty').value.split('x').map(Number);
+            config.width = w;
+            config.height = h;
+            game = config.mode === 'square' ? createSquareGame(w, h) : createTriangleGame(w, h);
+            history = [];
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('active');
+            setTimeout(renderBoard, 50);
+        }
+
+        function restartGame() {
+            document.getElementById('winnerOverlay').classList.remove('show');
+            game = config.mode === 'square' ? createSquareGame(config.width, config.height) : createTriangleGame(config.width, config.height);
+            history = [];
+            renderBoard();
+        }
+
+        function undoMove() {
+            if (history.length > 0) { game = history.pop(); renderBoard(); }
+        }
+
+        function goToMenu() {
+            document.getElementById('winnerOverlay').classList.remove('show');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('mainMenu').classList.remove('hidden');
+        }
+
+        function showWinner() {
+            document.getElementById('winnerOverlay').classList.add('show');
+            const title = document.getElementById('winnerTitle');
+            if (game.winner === -1) title.textContent = '🤝 무승부!';
+            else if (game.winner === 0) title.textContent = '🎉 플레이어 1 승리!';
+            else title.textContent = config.isSinglePlayer ? '🤖 컴퓨터 승리!' : '🎉 플레이어 2 승리!';
+            document.getElementById('finalScore').textContent = `${game.scores[0]} : ${game.scores[1]}`;
+        }
+
+        // 화면 회전/리사이즈 시 다시 그리기
+        window.addEventListener('resize', () => { if (game) renderBoard(); });
+    </script>
+</body>
+
+</html>

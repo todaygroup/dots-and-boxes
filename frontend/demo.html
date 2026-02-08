@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dots and Boxes - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .status-item h3 {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .status-item p {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .tutorial-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tutorial-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .tutorial-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .tutorial-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .tutorial-meta {
+            margin-top: 10px;
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .response-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎮 Dots and Boxes - API Demo</h1>
+
+        <div class="status">
+            <h2 style="color: #667eea; margin-bottom: 15px;">🔌 서버 상태</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <h3>API 서버</h3>
+                    <p id="api-status">확인 중...</p>
+                </div>
+                <div class="status-item">
+                    <h3>데이터베이스</h3>
+                    <p id="db-status">PostgreSQL 17</p>
+                </div>
+                <div class="status-item">
+                    <h3>튜토리얼</h3>
+                    <p id="tutorial-count">-</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 API 테스트</h2>
+            <button onclick="testAPI()">서버 연결 테스트</button>
+            <button onclick="loadTutorials()">튜토리얼 로드</button>
+            <button onclick="createClassroom()">Classroom 생성</button>
+            <div class="response-display" id="response"></div>
+        </div>
+
+        <div class="section" id="tutorials-section" style="display:none;">
+            <h2>🎓 튜토리얼 목록</h2>
+            <div class="tutorial-list" id="tutorials"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:4001';
+
+        // 페이지 로드 시 자동으로 상태 확인
+        window.onload = function () {
+            testAPI();
+            loadTutorials();
+        };
+
+        async function testAPI() {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<div class="loading"></div> 서버 연결 중...';
+
+            try {
+                const response = await fetch(API_URL + '/');
+                const text = await response.text();
+
+                document.getElementById('api-status').textContent = '✅ 작동 중';
+                responseDiv.innerHTML = `<p class="success">✅ 성공!</p><p>응답: ${text}</p>`;
+            } catch (error) {
+                document.getElementById('api-status').textContent = '❌ 오프라인';
+                responseDiv.innerHTML = `<p class="error">❌ 오류:</p><p>${error.message}</p>`;
+            }
+        }
+
+        async function loadTutorials() {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<div class="loading"></div> 튜토리얼 로딩 중...';
+
+            try {
+                const response = await fetch(API_URL + '/tutorials');
+                const tutorials = await response.json();
+
+                document.getElementById('tutorial-count').textContent = tutorials.length + '개';
+
+                const tutorialsDiv = document.getElementById('tutorials');
+                tutorialsDiv.innerHTML = tutorials.map(t => `
+                    <div class="tutorial-card">
+                        <h3>${t.title}</h3>
+                        <p>${t.description}</p>
+                        <div class="tutorial-meta">
+                            <span>🎯 대상: ${t.targetAge}세</span>
+                            <span>⏱️ ${t.estimatedTime}</span>
+                            <span>📝 ${t.steps.length}단계</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('tutorials-section').style.display = 'block';
+                responseDiv.innerHTML = `<p class="success">✅ ${tutorials.length}개 튜토리얼 로드 완료!</p>`;
+            } catch (error) {
+                responseDiv.innerHTML = `<p class="error">❌ 오류:</p><p>${error.message}</p>`;
+            }
+        }
+
+        async function createClassroom() {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<div class="loading"></div> Classroom 생성 중...';
+
+            try {
+                const response = await fetch(API_URL + '/classrooms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teacherId: 'demo-teacher-' + Date.now() })
+                });
+                const data = await response.json();
+
+                responseDiv.innerHTML = `
+                    <p class="success">✅ Classroom 생성 성공!</p>
+                    <p>코드: <strong>${data.code}</strong></p>
+                    <p>선생님 ID: ${data.teacherId}</p>
+                    <p>상태: ${data.status}</p>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `<p class="error">❌ 오류:</p><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

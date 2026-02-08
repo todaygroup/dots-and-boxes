@@ -1,0 +1,26 @@
+{
+  "name": "dots-and-boxes-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/api\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "devDependencies": {
+    "@types/passport": "^1.0.17",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/passport-strategy": "^0.2.38",
+    "concurrently": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

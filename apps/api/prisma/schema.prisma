@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String?  @unique
+  type      UserType @default(GUEST)
+  createdAt DateTime @default(now())
+
+  hostedSessions GameSession[]
+  ownedClasses   ClassSession[]
+}
+
+model GameSession {
+  id          String      @id @default(uuid())
+  code        String?     @unique
+  status      GameStatus  @default(WAITING)
+  mode        GameMode
+  boardWidth  Int
+  boardHeight Int
+  currentTurn Int         @default(0)
+  winner      Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  endedAt     DateTime?
+
+  hostId      String?
+  host        User?       @relation(fields: [hostId], references: [id])
+  
+  moves       Move[]
+  
+  // Players stored as JSON for now to simplify relation (can be normalized later)
+  // { 0: "uuid1", 1: "uuid2" }
+  players     Json        
+  boardState  Json?
+}
+
+model Move {
+  id          String      @id @default(uuid())
+  sessionId   String
+  session     GameSession @relation(fields: [sessionId], references: [id])
+  playerIndex Int
+  edgeKey     String
+  turnNumber  Int
+  createdAt   DateTime    @default(now())
+}
+
+model ClassSession {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  teacherId   String
+  teacher     User     @relation(fields: [teacherId], references: [id])
+  status      ClassStatus @default(OPEN)
+  createdAt   DateTime @default(now())
+  
+  // Students and GameSessions in class stored as JSON or fetched via separate query
+  // For MVP, simplistic JSON storage for students
+  students    Json     // [{ id, name }]
+  gameIds     Json     // ["uuid1", "uuid2"]
+}
+
+enum UserType {
+  GUEST
+  STUDENT
+  TEACHER
+  PARENT
+}
+
+enum GameStatus {
+  WAITING
+  PLAYING
+  FINISHED
+  ABANDONED
+}
+
+enum GameMode {
+  SINGLE
+  LOCAL_2P
+  ONLINE
+  CLASSROOM
+}
+
+enum ClassStatus {
+  OPEN
+  CLOSED
+}
