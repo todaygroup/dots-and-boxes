@@ -2,26 +2,29 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files (root and workspaces)
+# Copy all package files for workspaces
 COPY package*.json ./
 COPY apps/api/package*.json ./apps/api/
 COPY packages/game-logic/package*.json ./packages/game-logic/
 
-# Install dependencies
-RUN npm install
+# Install ALL dependencies (including devDependencies for build)
+RUN npm install --include=dev
 
-# Copy source code
-COPY apps/api ./apps/api
+# Copy game-logic source and build
 COPY packages/game-logic ./packages/game-logic
+RUN npm run build --workspace=game-logic
 
-# Build game-logic first
-RUN npm run build --workspace=game-logic || true
+# Copy API source
+COPY apps/api ./apps/api
 
 # Generate Prisma client
 RUN npx prisma generate --schema=./apps/api/prisma/schema.prisma
 
 # Build the API
 RUN npm run build --workspace=api
+
+# Remove devDependencies for smaller image
+RUN npm prune --production
 
 # Expose port
 EXPOSE 4000
