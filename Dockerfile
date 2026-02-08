@@ -12,7 +12,7 @@ RUN npm install --include=dev
 
 # Copy game-logic source and build
 COPY packages/game-logic ./packages/game-logic
-RUN npm run build --workspace=game-logic
+RUN npm run build --workspace=@dots-game/game-logic
 
 # Copy API source
 COPY apps/api ./apps/api
