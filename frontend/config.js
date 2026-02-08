@@ -4,7 +4,7 @@
 const CONFIG = {
     // API server URL - change this for production deployment
     API_URL: window.location.hostname === 'localhost'
-        ? 'http://localhost:4000'
+        ? 'https://api-production-926a.up.railway.app'
         : 'https://your-api.railway.app', // Replace with your Railway URL
 
     // WebSocket URL for real-time game features
