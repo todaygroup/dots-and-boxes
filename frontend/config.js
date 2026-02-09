@@ -2,7 +2,7 @@
 // This file configures the API endpoint for the frontend
 
 const CONFIG = {
-    // API server URL - change this for production deployment
+    // API server URL - change this for production deployment (Vercel Trigger)
     API_URL: window.location.hostname === 'localhost'
         ? 'https://api-production-926a.up.railway.app'
         : 'https://your-api.railway.app', // Replace with your Railway URL
