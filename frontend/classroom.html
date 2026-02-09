@@ -203,12 +203,35 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="login-box">
+            <h2>⚙️ SETTINGS</h2>
+            <p style="margin-bottom: 20px; color: #666;">Change Classroom PIN</p>
+            <input type="text" id="newPinInput" class="pin-input" maxlength="4" placeholder="NEW">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveNewPin()"
+                    style="flex: 1; padding: 15px; background: #2C3E50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    SAVE
+                </button>
+                <button onclick="closeSettings()"
+                    style="flex: 1; padding: 15px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    CANCEL
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Dashboard -->
     <div id="dashboard" style="display: none;">
         <div class="header">
             <div style="font-weight: bold; font-size: 1.2rem;">👨‍🏫 CLASSROOM MANAGER</div>
-            <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="display: flex; gap: 15px; align-items: center;">
                 <span id="updateTime" style="font-size: 0.8rem; opacity: 0.8;">Updated: Just now</span>
+                <button onclick="openSettings()"
+                    style="background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">⚙️
+                    Setting</button>
                 <a href="lobby.html" class="back-btn">EXIT</a>
             </div>
         </div>
@@ -240,12 +263,14 @@
     <script>
         const API_URL = CONFIG.API_URL;
 
-        // Simple client-side PIN for demo (In production, use server auth)
-        const TEACHER_PIN = "1234";
+        // Default PIN is 1234 if not set in localStorage
+        function getPin() {
+            return localStorage.getItem('dots_teacher_pin') || "1234";
+        }
 
         function checkPin() {
             const input = document.getElementById('pinInput').value;
-            if (input === TEACHER_PIN) {
+            if (input === getPin()) {
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 startMonitoring();
@@ -253,6 +278,28 @@
                 document.getElementById('errorMsg').style.display = 'block';
                 document.getElementById('pinInput').value = '';
                 document.getElementById('pinInput').focus();
+            }
+        }
+
+        // Settings Logic
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            document.getElementById('newPinInput').value = '';
+            document.getElementById('newPinInput').focus();
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function saveNewPin() {
+            const newPin = document.getElementById('newPinInput').value;
+            if (newPin.length >= 4) {
+                localStorage.setItem('dots_teacher_pin', newPin);
+                alert('PIN Code가 변경되었습니다: ' + newPin);
+                closeSettings();
+            } else {
+                alert('4자리 이상 입력해주세요.');
             }
         }
 
