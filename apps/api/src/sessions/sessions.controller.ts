@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { MakeMoveDto } from './dto/make-move.dto';
 import type { GameSession } from './sessions.interface';
+import { GameStatus } from '@prisma/client';
 
 @Controller('sessions')
 export class SessionsController {
@@ -14,8 +15,8 @@ export class SessionsController {
     }
 
     @Get()
-    async findAll(): Promise<GameSession[]> {
-        return this.sessionsService.findAll();
+    async findAll(@Query('status') status?: GameStatus): Promise<GameSession[]> {
+        return this.sessionsService.findAll(status);
     }
 
     @Get(':id')

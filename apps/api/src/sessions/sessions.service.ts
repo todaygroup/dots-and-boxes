@@ -28,8 +28,12 @@ export class SessionsService {
         return this.mapToGameSession(session);
     }
 
-    async findAll(): Promise<GameSession[]> {
-        const sessions = await this.prisma.gameSession.findMany();
+    async findAll(status?: GameStatus): Promise<GameSession[]> {
+        const where = status ? { status } : {};
+        const sessions = await this.prisma.gameSession.findMany({
+            where,
+            orderBy: { createdAt: 'desc' }
+        });
         return sessions.map(s => this.mapToGameSession(s));
     }
 
