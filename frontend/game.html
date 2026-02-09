@@ -1032,6 +1032,20 @@
 
         // 화면 회전/리사이즈 시 다시 그리기
         window.addEventListener('resize', () => { if (game) renderBoard(); });
+        // Initialize
+        window.onload = function () {
+            // Check for mode parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const sessionId = urlParams.get('sessionId');
+
+            if (mode === 'single') {
+                startGame('single');
+            } else if (sessionId) {
+                // Multiplayer join logic would go here if not already handled
+                // Current implementation might strictly need more logic, but for now specific to practice mode.
+            }
+        };
     </script>
 </body>
 
