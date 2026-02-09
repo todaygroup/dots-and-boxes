@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dots and Boxes - Tutorial Library</title>
+    <script src="config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #2A9D8F 0%, #264653 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #E9C46A;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            width: min(800px, 90vw);
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            color: #333;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-image {
+            height: 160px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #264653;
+        }
+
+        .card-text {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+            background: #E76F51;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #D55D41;
+        }
+
+        .rule-step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #E9C46A;
+            color: #264653;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            margin-bottom: 5px;
+            color: #E9C46A;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a href="lobby.html" class="back-btn">⬅ BACK TO LOBBY</a>
+        <div class="logo">LIBRARY 📚</div>
+        <div style="width: 100px;"></div> <!-- Spacer -->
+    </div>
+
+    <div class="container">
+        <!-- Practice Section -->
+        <div>
+            <h2 class="section-title">AI 연습장 (Practice)</h2>
+            <div class="card"
+                style="display: flex; flex-direction: row; align-items: center; padding: 20px; background: rgba(255,255,255,0.95);">
+                <div style="font-size: 4rem; margin-right: 30px;">🤖</div>
+                <div style="flex: 1;">
+                    <h3 class="card-title">싱글 플레이 연습 모드</h3>
+                    <p class="card-text">AI와 1:1 대결을 통해 전략을 익히세요. 승패 기록이 남지 않습니다.</p>
+                </div>
+                <a href="demo.html" class="action-btn" style="width: auto; padding: 15px 30px;">연습 시작하기 ➤</a>
+            </div>
+        </div>
+
+        <!-- Rules Section -->
+        <div>
+            <h2 class="section-title">게임 규칙 (Rules)</h2>
+
+            <div class="rule-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>선을 연결하세요</h3>
+                    <p>자신의 턴에 두 점 사이를 연결하는 선을 하나 긋습니다. 가로 또는 세로로만 그을 수 있습니다.</p>
+                </div>
+            </div>
+
+            <div class="rule-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>사각형을 완성하세요</h3>
+                    <p>선을 그어 1x1 사각형(Box)을 완성하면 해당 사각형은 당신의 것이 되고, 1점(또는 모드에 따라 점수)을 획득합니다.</p>
+                </div>
+            </div>
+
+            <div class="rule-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>보너스 턴!</h3>
+                    <p>사각형을 완성하면 <b>한 번 더</b> 선을 그을 수 있습니다. 연속으로 여러 개의 사각형을 완성할 수 있는 기회입니다!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy Section -->
+        <div>
+            <h2 class="section-title">전략 가이드 (Strategy)</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-image" style="background: #E0FBFC;">⛓️</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Long Chain 전략</h3>
+                        <p class="card-text">가능한 한 긴 통로(Chain)를 만들어 상대방에게 넘겨주지 않도록 주의하세요. 마지막 선을 긋는 사람이 모든 점수를 가져갑니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image" style="background: #FDE2E4;">❌</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Double Cross</h3>
+                        <p class="card-text">긴 체인의 마지막 2칸을 남겨두고 상대에게 턴을 넘기는 고급 기술입니다. 상대가 어쩔 수 없이 다음 체인을 열어주게 만듭니다.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image" style="background: #FFF1E6;">🛡️</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Sacrifice (희생)</h3>
+                        <p class="card-text">작은 점수를 내어주고 더 큰 이득을 취하세요. 때로는 몇 개의 박스를 상대에게 주는 것이 승리의 열쇠가 됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

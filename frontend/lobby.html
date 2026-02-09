@@ -245,32 +245,63 @@
 
 <body>
     <div class="lobby-container">
-        <!-- Welcome / Nickname -->
-        <div class="welcome-section">
+        <!-- Main Menu Section -->
+        <div id="mainMenuSection" style="width: 100%; text-align: center;">
             <div class="logo">DOTS <span>&</span> BOXES</div>
-            <p class="subtitle">LOBBY & MATCHMAKING</p>
+            <p class="subtitle">EDUCATIONAL STRATEGY PLATFORM</p>
 
-            <div class="nickname-input-group">
-                <input type="text" id="nicknameInput" class="cyber-input" placeholder="닉네임을 입력하세요" maxlength="12">
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 30px;">
+                <button onclick="showSection('play')" class="menu-btn primary">
+                    <span>🎮</span> PLAY GAME
+                </button>
+                <button onclick="location.href='tutorial.html'" class="menu-btn secondary"
+                    style="background: linear-gradient(180deg, #2A9D8F 0%, #264653 100%);">
+                    <span>📚</span> TUTORIAL LIBRARY
+                </button>
+                <button onclick="location.href='classroom.html'" class="menu-btn secondary"
+                    style="background: linear-gradient(180deg, #F4A261 0%, #E76F51 100%);">
+                    <span>👨‍🏫</span> CLASSROOM
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; font-size: 0.8rem; color: #666;">
+                v1.2.0 | Edu-Edition
             </div>
         </div>
 
-        <!-- Create Game Button -->
-        <div class="create-btn-container">
-            <button id="createGameBtn" class="menu-btn primary">
-                <span>➕</span> 방 만들기 (NEW GAME)
-            </button>
-        </div>
-
-        <!-- Game List -->
-        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Play Section (Existing Lobby UI) -->
+        <div id="playSection" style="display: none; width: 100%;">
             <div class="panel-header">
-                <span class="panel-title">참여 가능한 게임</span>
-                <button id="refreshBtn" class="refresh-btn">↻ 새로고침</button>
+                <button onclick="showSection('main')" class="refresh-btn"
+                    style="border: none; padding: 0; font-size: 1.2rem;">⬅</button>
+                <span class="panel-title" style="flex:1; text-align:center;">MULTIPLAYER LOBBY</span>
+                <div style="width: 20px;"></div> <!-- Spacer -->
             </div>
 
-            <div id="gameList" class="game-list-container">
-                <div class="empty-state">게임 목록을 불러오는 중...</div>
+            <!-- Welcome / Nickname -->
+            <div class="welcome-section">
+                <div class="nickname-input-group">
+                    <input type="text" id="nicknameInput" class="cyber-input" placeholder="닉네임을 입력하세요" maxlength="12">
+                </div>
+            </div>
+
+            <!-- Create Game Button -->
+            <div class="create-btn-container">
+                <button id="createGameBtn" class="menu-btn primary">
+                    <span>➕</span> 방 만들기 (NEW GAME)
+                </button>
+            </div>
+
+            <!-- Game List -->
+            <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; margin-top: 20px;">
+                <div class="panel-header">
+                    <span class="panel-title" style="font-size: 1rem;">참여 가능한 게임</span>
+                    <button id="refreshBtn" class="refresh-btn">↻</button>
+                </div>
+
+                <div id="gameList" class="game-list-container">
+                    <div class="empty-state">게임 목록을 불러오는 중...</div>
+                </div>
             </div>
         </div>
     </div>

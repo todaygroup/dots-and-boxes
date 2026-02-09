@@ -5,10 +5,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // CORS configuration
-  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:3000,https://dots-and-boxes-api.vercel.app';
-  const corsOrigins = corsOrigin.includes(',')
-    ? corsOrigin.split(',').map(o => o.trim())
-    : [corsOrigin];
+  const envCorsOrigin = process.env.CORS_ORIGIN || '';
+  const defaultOrigins = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'https://dots-and-boxes-api.vercel.app',
+    'https://dots-and-boxes-api.vercel.app/' // Add trailing slash version just in case
+  ];
+
+  const corsOrigins = [
+    ...envCorsOrigin.split(',').map(o => o.trim()).filter(Boolean),
+    ...defaultOrigins
+  ];
 
   console.log('[Server] Allowed CORS origins:', corsOrigins);
 
