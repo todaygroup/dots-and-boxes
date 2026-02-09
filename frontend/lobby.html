@@ -5,116 +5,201 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dots and Boxes - Lobby</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
+    <!-- 폰트 제외 (game.html과 동일하게 시스템 폰트 사용 또는 필요한 경우 추가) -->
     <script src="config.js"></script>
     <style>
-        .lobby-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            /* game.html과 동일한 배경 그라데이션 적용 */
+            background: linear-gradient(180deg, #FFD93D 0%, #F4A261 100%);
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            align-items: center;
+            justify-content: center;
         }
 
-        .cyber-panel {
-            background: rgba(10, 10, 18, 0.8);
-            border: 1px solid var(--neon-cyan);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
-            padding: 2rem;
-            border-radius: 4px;
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-
-        .cyber-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+        .lobby-container {
+            width: min(600px, 90vw);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: clamp(20px, 5vw, 40px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 90vh;
         }
 
         .welcome-section {
             text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: clamp(2em, 8vw, 3em);
+            font-weight: bold;
+            color: #E63946;
+            text-shadow: 2px 2px 0 #1D3557;
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #457B9D;
+        }
+
+        .subtitle {
+            color: #1D3557;
+            font-weight: 500;
+            margin-bottom: 20px;
         }
 
         .nickname-input-group {
             display: flex;
-            gap: 1rem;
             justify-content: center;
-            margin-top: 1rem;
+            width: 100%;
         }
 
         .cyber-input {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--neon-purple);
-            color: var(--neon-cyan);
-            padding: 10px 20px;
-            font-family: 'Rajdhani', sans-serif;
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #457B9D;
+            border-radius: 12px;
             font-size: 1.2rem;
-            border-radius: 4px;
-            outline: none;
-            width: 300px;
             text-align: center;
-            transition: all 0.3s;
+            color: #1D3557;
+            background: white;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.2s;
         }
 
         .cyber-input:focus {
-            box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);
-            border-color: var(--neon-pink);
+            border-color: #1D3557;
+            box-shadow: 0 0 0 4px rgba(69, 123, 157, 0.2);
         }
 
-        .game-list-header {
+        .create-btn-container {
+            width: 100%;
+        }
+
+        /* game.html의 .menu-btn 스타일 적용 (Primary) */
+        .menu-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.98);
+        }
+
+        .menu-btn.primary {
+            background: linear-gradient(180deg, #457B9D 0%, #1D3557 100%);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(180deg, #E63946 0%, #B5232E 100%);
+        }
+
+        .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-            padding-bottom: 0.5rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
         }
 
-        .game-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            max-height: 400px;
+        .panel-title {
+            color: #1D3557;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: 2px solid #457B9D;
+            color: #457B9D;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #457B9D;
+            color: white;
+        }
+
+        .game-list-container {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            flex: 1;
+            min-height: 200px;
             overflow-y: auto;
         }
 
-        /* Scrollbar styling */
-        .game-list::-webkit-scrollbar {
+        /* 스크롤바 커스텀 */
+        .game-list-container::-webkit-scrollbar {
             width: 8px;
         }
 
-        .game-list::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
+        .game-list-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
         }
 
-        .game-list::-webkit-scrollbar-thumb {
-            background: var(--neon-purple);
+        .game-list-container::-webkit-scrollbar-thumb {
+            background: #ccc;
             border-radius: 4px;
         }
 
         .game-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem 1.5rem;
-            border-left: 3px solid var(--neon-purple);
-            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            border-left: 5px solid #457B9D;
         }
 
         .game-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-left-color: var(--neon-pink);
-            transform: translateX(5px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .game-info {
@@ -123,84 +208,69 @@
         }
 
         .game-id {
-            color: var(--neon-cyan);
-            font-size: 0.9rem;
-            font-family: 'Orbitron', sans-serif;
-            margin-bottom: 0.2rem;
-        }
-
-        .game-status {
-            color: #aaa;
-            font-size: 0.8rem;
-        }
-
-        .join-btn {
-            padding: 8px 25px;
+            font-weight: bold;
+            color: #1D3557;
             font-size: 1rem;
         }
 
-        .create-btn-container {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .game-status {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 4px;
         }
 
-        .refresh-btn {
-            background: transparent;
-            border: 1px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            padding: 5px 10px;
+        .join-btn {
+            background: #E63946;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
-            transition: all 0.3s;
+            transition: background 0.2s;
         }
 
-        .refresh-btn:hover {
-            background: rgba(0, 243, 255, 0.1);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        .join-btn:hover {
+            background: #C92A35;
         }
 
         .empty-state {
             text-align: center;
-            color: #666;
-            padding: 2rem;
+            color: #888;
+            padding: 40px 0;
             font-style: italic;
         }
     </style>
 </head>
 
 <body>
-    <div class="background-grid"></div>
-
     <div class="lobby-container">
-        <!-- Profile Section -->
-        <div class="cyber-panel welcome-section">
-            <h1 class="neon-title" style="font-size: 2.5rem; margin-bottom: 10px;">LOBBY</h1>
-            <p style="color: #aaa;">Enter your codename regarding the grid.</p>
+        <!-- Welcome / Nickname -->
+        <div class="welcome-section">
+            <div class="logo">DOTS <span>&</span> BOXES</div>
+            <p class="subtitle">LOBBY & MATCHMAKING</p>
 
             <div class="nickname-input-group">
-                <input type="text" id="nicknameInput" class="cyber-input" placeholder="ENTER NICKNAME" maxlength="12">
+                <input type="text" id="nicknameInput" class="cyber-input" placeholder="닉네임을 입력하세요" maxlength="12">
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Create Game Button -->
         <div class="create-btn-container">
-            <button id="createGameBtn" class="cyber-button">
-                <span>NEW OPERATION</span>
+            <button id="createGameBtn" class="menu-btn primary">
+                <span>➕</span> 방 만들기 (NEW GAME)
             </button>
         </div>
 
         <!-- Game List -->
-        <div class="cyber-panel">
-            <div class="game-list-header">
-                <h2 style="color: var(--neon-purple); margin: 0; font-family: 'Orbitron', sans-serif;">ACTIVE SIGNALS
-                </h2>
-                <button id="refreshBtn" class="refresh-btn">REFRESH</button>
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="panel-header">
+                <span class="panel-title">참여 가능한 게임</span>
+                <button id="refreshBtn" class="refresh-btn">↻ 새로고침</button>
             </div>
 
-            <div id="gameList" class="game-list">
-                <div class="empty-state">Scanning frequencies...</div>
+            <div id="gameList" class="game-list-container">
+                <div class="empty-state">게임 목록을 불러오는 중...</div>
             </div>
         </div>
     </div>
@@ -225,54 +295,51 @@
 
         // Create Game
         createGameBtn.addEventListener('click', async () => {
-            const nickname = nicknameInput.value.trim() || 'Anonymous';
+            const nickname = nicknameInput.value.trim();
+            if (!nickname) {
+                alert('닉네임을 입력해주세요!');
+                nicknameInput.focus();
+                return;
+            }
             localStorage.setItem('dots_nickname', nickname);
+
+            createGameBtn.disabled = true;
+            createGameBtn.innerHTML = '생성 중...';
 
             try {
                 const response = await fetch(`${API_URL}/sessions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ width: 3, height: 3 }) // Default size
+                    body: JSON.stringify({ width: 4, height: 4 }) // Default 4x4 (Medium)
                 });
 
                 if (!response.ok) throw new Error('Create failed');
 
                 const session = await response.json();
-                // Join as Player 1 automatically handled by simple logic? 
-                // Actually Backend logic doesn't auto-join creator. We explicitly join.
-                await joinGame(session.id, nickname);
+                await joinGame(session.id);
             } catch (err) {
                 console.error(err);
-                alert('Failed to initialize operation.');
+                alert('방 생성에 실패했습니다.');
+                createGameBtn.disabled = false;
+                createGameBtn.innerHTML = '<span>➕</span> 방 만들기 (NEW GAME)';
             }
         });
 
-        async function joinGame(sessionId, nickname) {
-            try {
-                // Generate a random ID for the player if not exists? 
-                // For simplicity, we use the nickname as ID or generate a UUID if needed.
-                // But the backend expects 'playerId'. Let's generate a UUID-like key for uniqueness
-                // and store it in localStorage alongside nickname.
-
-                let playerId = localStorage.getItem('dots_player_id');
-                if (!playerId) {
-                    playerId = 'agent_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('dots_player_id', playerId);
-                }
-
-                // If nickname changed, update it? Backend currently only stores playerId in slots.
-                // We'll proceed with just routing for now.
-                // The game.html will handle the actual 'join' API call or socket connection using these creds.
-
-                window.location.href = `game.html?sessionId=${sessionId}`;
-            } catch (err) {
-                console.error(err);
+        async function joinGame(sessionId) {
+            let playerId = localStorage.getItem('dots_player_id');
+            if (!playerId) {
+                playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('dots_player_id', playerId);
             }
+            window.location.href = `game.html?sessionId=${sessionId}`;
         }
 
         // Fetch Games
         async function fetchGames() {
-            gameListEl.innerHTML = '<div class="empty-state">Scanning...</div>';
+            // Only show loading if empty
+            if (gameListEl.children.length === 0 || gameListEl.querySelector('.empty-state')) {
+                gameListEl.innerHTML = '<div class="empty-state">목록 갱신 중...</div>';
+            }
 
             try {
                 const response = await fetch(`${API_URL}/sessions?status=WAITING`);
@@ -282,7 +349,7 @@
                 renderGames(sessions);
             } catch (err) {
                 console.error(err);
-                gameListEl.innerHTML = '<div class="empty-state" style="color:var(--neon-pink)">Connection lost. Retrying...</div>';
+                gameListEl.innerHTML = '<div class="empty-state" style="color: #E63946;">목록을 불러오지 못했습니다.</div>';
             }
         }
 
@@ -290,7 +357,7 @@
             gameListEl.innerHTML = '';
 
             if (sessions.length === 0) {
-                gameListEl.innerHTML = '<div class="empty-state">No active signals found. Start a new operation.</div>';
+                gameListEl.innerHTML = '<div class="empty-state">대기 중인 방이 없습니다.<br>새로운 방을 만들어보세요!</div>';
                 return;
             }
 
@@ -300,14 +367,15 @@
 
                 const playerCount = countPlayers(session.players);
                 const timeAgo = getTimeAgo(new Date(session.createdAt));
+                const size = `${session.boardWidth}×${session.boardHeight}`;
 
                 el.innerHTML = `
                     <div class="game-info">
-                        <span class="game-id">SESSION: ${session.id.substring(0, 8)}...</span>
-                        <span class="game-status">${session.boardWidth}x${session.boardHeight} GRID | ${playerCount}/2 AGENTS | ${timeAgo}</span>
+                        <span class="game-id">Battle #${session.id.substring(0, 4)}</span>
+                        <span class="game-status">MAP: ${size} | 인원: ${playerCount}/2 | ${timeAgo}</span>
                     </div>
-                    <button class="cyber-button join-btn" onclick="joinGame('${session.id}', nicknameInput.value)">
-                        ACCESS
+                    <button class="join-btn" onclick="joinGame('${session.id}')">
+                        입장하기
                     </button>
                 `;
                 gameListEl.appendChild(el);
@@ -323,10 +391,10 @@
 
         function getTimeAgo(date) {
             const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return `${seconds}s ago`;
+            if (seconds < 60) return `방금 전`;
             const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            return `${Math.floor(minutes / 60)}h ago`;
+            if (minutes < 60) return `${minutes}분 전`;
+            return `${Math.floor(minutes / 60)}시간 전`;
         }
 
         refreshBtn.addEventListener('click', fetchGames);
