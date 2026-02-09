@@ -313,48 +313,72 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const gameListEl = document.getElementById('gameList');
 
+        // Menu Navigation
+        function showSection(sectionId) {
+            console.log('Switching to section:', sectionId);
+            const main = document.getElementById('mainMenuSection');
+            const play = document.getElementById('playSection');
+
+            if (sectionId === 'play') {
+                main.style.display = 'none';
+                play.style.display = 'block';
+                // Trigger refresh when entering play section
+                fetchGames();
+            } else {
+                main.style.display = 'block';
+                play.style.display = 'none';
+            }
+        }
+
+        // Expose to window for onclick events
+        window.showSection = showSection;
+
         // Nickname Management
         const storedNickname = localStorage.getItem('dots_nickname');
-        if (storedNickname) {
+        if (storedNickname && nicknameInput) {
             nicknameInput.value = storedNickname;
         }
 
-        nicknameInput.addEventListener('change', (e) => {
-            const val = e.target.value.trim();
-            if (val) localStorage.setItem('dots_nickname', val);
-        });
+        if (nicknameInput) {
+            nicknameInput.addEventListener('change', (e) => {
+                const val = e.target.value.trim();
+                if (val) localStorage.setItem('dots_nickname', val);
+            });
+        }
 
         // Create Game
-        createGameBtn.addEventListener('click', async () => {
-            const nickname = nicknameInput.value.trim();
-            if (!nickname) {
-                alert('닉네임을 입력해주세요!');
-                nicknameInput.focus();
-                return;
-            }
-            localStorage.setItem('dots_nickname', nickname);
+        if (createGameBtn) {
+            createGameBtn.addEventListener('click', async () => {
+                const nickname = nicknameInput.value.trim();
+                if (!nickname) {
+                    alert('닉네임을 입력해주세요!');
+                    nicknameInput.focus();
+                    return;
+                }
+                localStorage.setItem('dots_nickname', nickname);
 
-            createGameBtn.disabled = true;
-            createGameBtn.innerHTML = '생성 중...';
+                createGameBtn.disabled = true;
+                createGameBtn.innerHTML = '생성 중...';
 
-            try {
-                const response = await fetch(`${API_URL}/sessions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ width: 4, height: 4 }) // Default 4x4 (Medium)
-                });
+                try {
+                    const response = await fetch(`${API_URL}/sessions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ width: 4, height: 4 }) // Default 4x4 (Medium)
+                    });
 
-                if (!response.ok) throw new Error('Create failed');
+                    if (!response.ok) throw new Error('Create failed');
 
-                const session = await response.json();
-                await joinGame(session.id);
-            } catch (err) {
-                console.error(err);
-                alert('방 생성에 실패했습니다.');
-                createGameBtn.disabled = false;
-                createGameBtn.innerHTML = '<span>➕</span> 방 만들기 (NEW GAME)';
-            }
-        });
+                    const session = await response.json();
+                    await joinGame(session.id);
+                } catch (err) {
+                    console.error(err);
+                    alert('방 생성에 실패했습니다.');
+                    createGameBtn.disabled = false;
+                    createGameBtn.innerHTML = '<span>➕</span> 방 만들기 (NEW GAME)';
+                }
+            });
+        }
 
         async function joinGame(sessionId) {
             let playerId = localStorage.getItem('dots_player_id');
@@ -367,6 +391,10 @@
 
         // Fetch Games
         async function fetchGames() {
+            // Check if play section is visible
+            const playSection = document.getElementById('playSection');
+            if (!playSection || playSection.style.display === 'none') return;
+
             // Only show loading if empty
             if (gameListEl.children.length === 0 || gameListEl.querySelector('.empty-state')) {
                 gameListEl.innerHTML = '<div class="empty-state">목록 갱신 중...</div>';
@@ -385,6 +413,7 @@
         }
 
         function renderGames(sessions) {
+            if (!gameListEl) return;
             gameListEl.innerHTML = '';
 
             if (sessions.length === 0) {
@@ -428,10 +457,12 @@
             return `${Math.floor(minutes / 60)}시간 전`;
         }
 
-        refreshBtn.addEventListener('click', fetchGames);
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', fetchGames);
+        }
 
         // Initial Load
-        fetchGames();
+        // Start in Main Menu mode (do nothing specific until Play is clicked)
 
         // Auto refresh every 5 seconds
         setInterval(fetchGames, 5000);
