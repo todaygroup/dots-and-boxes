@@ -4,13 +4,13 @@
 const CONFIG = {
     // API server URL - change this for production deployment (Vercel Trigger)
     API_URL: window.location.hostname === 'localhost'
-        ? 'https://api-production-926a.up.railway.app'
-        : 'https://your-api.railway.app', // Replace with your Railway URL
+        ? 'http://localhost:4000'
+        : 'https://api-production-926a.up.railway.app',
 
     // WebSocket URL for real-time game features
     WS_URL: window.location.hostname === 'localhost'
         ? 'ws://localhost:4000'
-        : 'wss://your-api.railway.app', // Replace with your Railway URL
+        : 'wss://api-production-926a.up.railway.app',
 
     // App version
     VERSION: '1.0.0',

@@ -5,7 +5,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // CORS configuration
-  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:3000';
+  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:3000,https://dots-and-boxes-api.vercel.app';
   const corsOrigins = corsOrigin.includes(',')
     ? corsOrigin.split(',').map(o => o.trim())
     : [corsOrigin];
