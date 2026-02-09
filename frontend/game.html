@@ -525,528 +525,534 @@
         </div>
 
         <div class="control-bar">
-            <button class="control-btn" onclick="goToMenu()">
-                <span class="icon">🏠</span>
-                <span class="text">HOME</span>
-            </button>
-            <button class="control-btn" onclick="restartGame()">
-                <span class="icon">🔄</span>
-                <span class="text">RESTART</span>
-            </button>
-            <button class="control-btn" onclick="undoMove()">
-                <span class="icon">↩️</span>
-                <span class="text">UNDO</span>
-            </button>
+            <div class="control-bar">
+                <button class="control-btn" id="btnHome">
+                    <span class="icon">🏠</span>
+                    <span class="text">HOME</span>
+                </button>
+                <button class="control-btn" onclick="restartGame()">
+                    <span class="icon">🔄</span>
+                    <span class="text">RESTART</span>
+                </button>
+                <button class="control-btn" onclick="undoMove()">
+                    <span class="icon">↩️</span>
+                    <span class="text">UNDO</span>
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- 승리 오버레이 -->
-    <div class="winner-overlay" id="winnerOverlay">
-        <div class="winner-box">
-            <h2 id="winnerTitle">🎉 게임 종료!</h2>
-            <div class="final-score" id="finalScore"></div>
-            <button class="btn-restart" onclick="restartGame()">다시 하기</button>
-            <button class="btn-menu" onclick="goToMenu()">메뉴로</button>
+        <!-- 승리 오버레이 -->
+        <div class="winner-overlay" id="winnerOverlay">
+            <div class="winner-box">
+                <h2 id="winnerTitle">🎉 게임 종료!</h2>
+                <div class="final-score" id="finalScore"></div>
+                <button class="btn-restart" onclick="restartGame()">다시 하기</button>
+                <button class="btn-menu" onclick="location.href='lobby.html'">로비로 나가기</button>
+            </div>
         </div>
-    </div>
 
-    <script>
-        // ===== 게임 설정 =====
-        let config = {
-            mode: 'square',
-            width: 4,
-            height: 4,
-            shape: 'rectangle',
-            isSinglePlayer: true
-        };
-
-        let game = null;
-        let history = [];
-
-        // ===== 크기 계산 (화면의 85% 채우기) =====
-        function calculateSizes(width, height) {
-            const boardArea = document.getElementById('boardArea');
-            // 사용 가능한 공간의 85% 사용
-            const availableWidth = (boardArea ? boardArea.clientWidth : window.innerWidth) * 0.85;
-            const availableHeight = (boardArea ? boardArea.clientHeight : window.innerHeight * 0.7) * 0.85;
-
-            // 보드가 필요한 셀 수
-            const cellsX = width - 1;
-            const cellsY = height - 1;
-
-            // 각 축에서 사용 가능한 spacing 계산 (dot 사이 간격)
-            // 최소 dot 크기는 spacing의 1/4로 설정
-            const maxSpacingX = availableWidth / (cellsX + 0.25);
-            const maxSpacingY = availableHeight / (cellsY + 0.25);
-
-            // 더 제한적인 축에 맞춤
-            let spacing = Math.floor(Math.min(maxSpacingX, maxSpacingY));
-
-            // 최대/최소 spacing 제한
-            spacing = Math.max(25, Math.min(spacing, 120));
-
-            // dot 크기는 spacing에 비례
-            let dotSize = Math.max(8, Math.floor(spacing * 0.3));
-            dotSize = Math.min(dotSize, 24); // 최대 dot 크기
-
-            // 선 굵기도 spacing에 비례
-            let edgeThickness = Math.max(4, Math.floor(spacing * 0.15));
-            edgeThickness = Math.min(edgeThickness, 12); // 최대 선 굵기
-
-            return { dotSize, spacing, edgeThickness };
-        }
-
-        // ===== 게임 로직 =====
-        function createSquareGame(width, height) {
-            const boxes = [];
-            for (let r = 0; r < height - 1; r++) {
-                const row = [];
-                for (let c = 0; c < width - 1; c++) {
-                    row.push({ completed: false, owner: null });
-                }
-                boxes.push(row);
-            }
-            return {
-                mode: 'square', width, height,
-                edges: [], edgeOwners: {}, boxes,
-                scores: [0, 0], currentPlayer: 0, winner: null
+        <script>
+            // ===== 게임 설정 =====
+            let config = {
+                mode: 'square',
+                width: 4,
+                height: 4,
+                shape: 'rectangle',
+                isSinglePlayer: true
             };
-        }
 
-        function createTriangleGame(width, height) {
-            const triangles = [];
-            for (let r = 0; r < height - 1; r++) {
-                const row = [];
-                for (let c = 0; c < width - 1; c++) {
-                    row.push({
-                        upper: { completed: false, owner: null },
-                        lower: { completed: false, owner: null }
-                    });
-                }
-                triangles.push(row);
+            let game = null;
+            let history = [];
+
+            // ===== 크기 계산 (화면의 85% 채우기) =====
+            function calculateSizes(width, height) {
+                const boardArea = document.getElementById('boardArea');
+                // 사용 가능한 공간의 85% 사용
+                const availableWidth = (boardArea ? boardArea.clientWidth : window.innerWidth) * 0.85;
+                const availableHeight = (boardArea ? boardArea.clientHeight : window.innerHeight * 0.7) * 0.85;
+
+                // 보드가 필요한 셀 수
+                const cellsX = width - 1;
+                const cellsY = height - 1;
+
+                // 각 축에서 사용 가능한 spacing 계산 (dot 사이 간격)
+                // 최소 dot 크기는 spacing의 1/4로 설정
+                const maxSpacingX = availableWidth / (cellsX + 0.25);
+                const maxSpacingY = availableHeight / (cellsY + 0.25);
+
+                // 더 제한적인 축에 맞춤
+                let spacing = Math.floor(Math.min(maxSpacingX, maxSpacingY));
+
+                // 최대/최소 spacing 제한
+                spacing = Math.max(25, Math.min(spacing, 120));
+
+                // dot 크기는 spacing에 비례
+                let dotSize = Math.max(8, Math.floor(spacing * 0.3));
+                dotSize = Math.min(dotSize, 24); // 최대 dot 크기
+
+                // 선 굵기도 spacing에 비례
+                let edgeThickness = Math.max(4, Math.floor(spacing * 0.15));
+                edgeThickness = Math.min(edgeThickness, 12); // 최대 선 굵기
+
+                return { dotSize, spacing, edgeThickness };
             }
-            return {
-                mode: 'triangle', width, height,
-                edges: [], edgeOwners: {}, triangles,
-                scores: [0, 0], currentPlayer: 0, winner: null
+
+            // ===== 게임 로직 =====
+            function createSquareGame(width, height) {
+                const boxes = [];
+                for (let r = 0; r < height - 1; r++) {
+                    const row = [];
+                    for (let c = 0; c < width - 1; c++) {
+                        row.push({ completed: false, owner: null });
+                    }
+                    boxes.push(row);
+                }
+                return {
+                    mode: 'square', width, height,
+                    edges: [], edgeOwners: {}, boxes,
+                    scores: [0, 0], currentPlayer: 0, winner: null
+                };
+            }
+
+            function createTriangleGame(width, height) {
+                const triangles = [];
+                for (let r = 0; r < height - 1; r++) {
+                    const row = [];
+                    for (let c = 0; c < width - 1; c++) {
+                        row.push({
+                            upper: { completed: false, owner: null },
+                            lower: { completed: false, owner: null }
+                        });
+                    }
+                    triangles.push(row);
+                }
+                return {
+                    mode: 'triangle', width, height,
+                    edges: [], edgeOwners: {}, triangles,
+                    scores: [0, 0], currentPlayer: 0, winner: null
+                };
+            }
+
+            function getEdgeKey(type, row, col) { return `${type}-${row}-${col}`; }
+            function isValidMove(game, edgeKey) { return !game.edges.includes(edgeKey); }
+
+            function makeMoveSquare(game, edgeKey) {
+                if (!isValidMove(game, edgeKey)) return { isValid: false };
+                const newGame = JSON.parse(JSON.stringify(game));
+                newGame.edges.push(edgeKey);
+                newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
+
+                const completedBoxes = [];
+                const edges = new Set(newGame.edges);
+
+                function isBoxComplete(r, c) {
+                    return edges.has(`h-${r}-${c}`) && edges.has(`h-${r + 1}-${c}`) &&
+                        edges.has(`v-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
+                }
+
+                function claimBoxEdges(r, c, owner) {
+                    [`h-${r}-${c}`, `h-${r + 1}-${c}`, `v-${r}-${c}`, `v-${r}-${c + 1}`]
+                        .forEach(k => newGame.edgeOwners[k] = owner);
+                }
+
+                const [type, rowStr, colStr] = edgeKey.split('-');
+                const row = parseInt(rowStr), col = parseInt(colStr);
+
+                if (type === 'h') {
+                    if (row < newGame.height - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
+                        newGame.boxes[row][col].completed = true;
+                        newGame.boxes[row][col].owner = newGame.currentPlayer;
+                        completedBoxes.push({ row, col });
+                        claimBoxEdges(row, col, newGame.currentPlayer);
+                    }
+                    if (row > 0 && newGame.boxes[row - 1]?.[col] && !newGame.boxes[row - 1][col].completed && isBoxComplete(row - 1, col)) {
+                        newGame.boxes[row - 1][col].completed = true;
+                        newGame.boxes[row - 1][col].owner = newGame.currentPlayer;
+                        completedBoxes.push({ row: row - 1, col });
+                        claimBoxEdges(row - 1, col, newGame.currentPlayer);
+                    }
+                } else {
+                    if (col < newGame.width - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
+                        newGame.boxes[row][col].completed = true;
+                        newGame.boxes[row][col].owner = newGame.currentPlayer;
+                        completedBoxes.push({ row, col });
+                        claimBoxEdges(row, col, newGame.currentPlayer);
+                    }
+                    if (col > 0 && newGame.boxes[row]?.[col - 1] && !newGame.boxes[row][col - 1].completed && isBoxComplete(row, col - 1)) {
+                        newGame.boxes[row][col - 1].completed = true;
+                        newGame.boxes[row][col - 1].owner = newGame.currentPlayer;
+                        completedBoxes.push({ row, col: col - 1 });
+                        claimBoxEdges(row, col - 1, newGame.currentPlayer);
+                    }
+                }
+
+                if (completedBoxes.length > 0) {
+                    newGame.scores[newGame.currentPlayer] += completedBoxes.length;
+                } else {
+                    newGame.currentPlayer = 1 - newGame.currentPlayer;
+                }
+
+                const totalBoxes = (newGame.width - 1) * (newGame.height - 1);
+                if (newGame.scores[0] + newGame.scores[1] === totalBoxes) {
+                    newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
+                }
+
+                return { newGame, completedBoxes, isValid: true };
+            }
+
+            function makeMoveTriangle(game, edgeKey) {
+                if (!isValidMove(game, edgeKey)) return { isValid: false };
+                const newGame = JSON.parse(JSON.stringify(game));
+                newGame.edges.push(edgeKey);
+                newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
+
+                const completedTriangles = [];
+                const edges = new Set(newGame.edges);
+
+                function isUpperTriComplete(r, c) {
+                    return edges.has(`h-${r}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c}`);
+                }
+                function isLowerTriComplete(r, c) {
+                    return edges.has(`h-${r + 1}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
+                }
+
+                const [type, rowStr, colStr] = edgeKey.split('-');
+                const row = parseInt(rowStr), col = parseInt(colStr);
+                const cellsToCheck = [];
+
+                if (type === 'h') {
+                    if (row < newGame.height - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                    if (row > 0) cellsToCheck.push({ r: row - 1, c: col, tri: 'lower' });
+                } else if (type === 'v') {
+                    if (col < newGame.width - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                    if (col > 0) cellsToCheck.push({ r: row, c: col - 1, tri: 'lower' });
+                } else if (type === 'd') {
+                    cellsToCheck.push({ r: row, c: col, tri: 'upper' });
+                    cellsToCheck.push({ r: row, c: col, tri: 'lower' });
+                }
+
+                for (const cell of cellsToCheck) {
+                    const { r, c, tri } = cell;
+                    if (r < 0 || r >= newGame.height - 1 || c < 0 || c >= newGame.width - 1) continue;
+                    const triObj = newGame.triangles[r][c][tri];
+                    if (triObj.completed) continue;
+                    const isComplete = tri === 'upper' ? isUpperTriComplete(r, c) : isLowerTriComplete(r, c);
+                    if (isComplete) {
+                        triObj.completed = true;
+                        triObj.owner = newGame.currentPlayer;
+                        completedTriangles.push({ r, c, tri });
+                    }
+                }
+
+                if (completedTriangles.length > 0) {
+                    newGame.scores[newGame.currentPlayer] += completedTriangles.length;
+                } else {
+                    newGame.currentPlayer = 1 - newGame.currentPlayer;
+                }
+
+                const totalTris = (newGame.width - 1) * (newGame.height - 1) * 2;
+                if (newGame.scores[0] + newGame.scores[1] === totalTris) {
+                    newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
+                }
+
+                return { newGame, completedTriangles, isValid: true };
+            }
+
+            // ===== AI =====
+            function getAIMove(game) {
+                const validEdges = [];
+                if (game.mode === 'square') {
+                    for (let r = 0; r < game.height; r++)
+                        for (let c = 0; c < game.width - 1; c++)
+                            if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
+                    for (let r = 0; r < game.height - 1; r++)
+                        for (let c = 0; c < game.width; c++)
+                            if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
+                    for (const edge of validEdges) {
+                        const result = makeMoveSquare(game, edge);
+                        if (result.isValid && result.completedBoxes.length > 0) return edge;
+                    }
+                } else {
+                    for (let r = 0; r < game.height; r++)
+                        for (let c = 0; c < game.width - 1; c++)
+                            if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
+                    for (let r = 0; r < game.height - 1; r++)
+                        for (let c = 0; c < game.width; c++)
+                            if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
+                    for (let r = 0; r < game.height - 1; r++)
+                        for (let c = 0; c < game.width - 1; c++)
+                            if (isValidMove(game, `d-${r}-${c}`)) validEdges.push(`d-${r}-${c}`);
+                    for (const edge of validEdges) {
+                        const result = makeMoveTriangle(game, edge);
+                        if (result.isValid && result.completedTriangles?.length > 0) return edge;
+                    }
+                }
+                return validEdges[Math.floor(Math.random() * validEdges.length)];
+            }
+
+            // ===== 보드 모양 마스크 =====
+            function getShapeMask(width, height, shape) {
+                const mask = [];
+                for (let r = 0; r < height; r++) {
+                    mask[r] = [];
+                    for (let c = 0; c < width; c++) mask[r][c] = true;
+                }
+                if (shape === 'rectangle') return mask;
+
+                const cx = (width - 1) / 2, cy = (height - 1) / 2;
+                const maxR = Math.min(cx, cy);
+
+                for (let r = 0; r < height; r++) {
+                    for (let c = 0; c < width; c++) {
+                        const dx = c - cx, dy = r - cy;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const angle = Math.atan2(dy, dx);
+
+                        if (shape === 'circle') mask[r][c] = dist <= maxR + 0.5;
+                        else if (shape === 'star') mask[r][c] = dist <= maxR * (0.5 + 0.5 * Math.abs(Math.sin(angle * 2.5))) + 0.5;
+                        else if (shape === 'heart') {
+                            const x = dx / maxR, y = (cy - r) / maxR;
+                            mask[r][c] = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y <= 0.3;
+                        }
+                        else if (shape === 'flower') mask[r][c] = dist <= maxR * (0.5 + 0.4 * Math.abs(Math.cos(angle * 3))) + 0.3;
+                        else if (shape === 'car') {
+                            const relY = r / (height - 1), relX = c / (width - 1);
+                            const isBody = relY > 0.3 && relY < 0.85;
+                            const isRoof = relY >= 0.15 && relY <= 0.35 && relX > 0.25 && relX < 0.75;
+                            const isWheel = relY >= 0.75 && (relX < 0.25 || relX > 0.75);
+                            mask[r][c] = (isBody || isRoof) && !isWheel;
+                        }
+                    }
+                }
+                return mask;
+            }
+
+            // ===== 렌더링 =====
+            function renderBoard() {
+                const container = document.getElementById('boardContainer');
+                container.innerHTML = '';
+
+                const sizes = calculateSizes(game.width, game.height);
+                const { dotSize, spacing, edgeThickness } = sizes;
+                container.style.setProperty('--edge-thickness', edgeThickness + 'px');
+
+                const boardWidth = (game.width - 1) * spacing + dotSize;
+                const boardHeight = (game.height - 1) * spacing + dotSize;
+                container.style.width = boardWidth + 'px';
+                container.style.height = boardHeight + 'px';
+
+                const mask = getShapeMask(game.width, game.height, config.shape);
+
+                // Dots
+                for (let r = 0; r < game.height; r++) {
+                    for (let c = 0; c < game.width; c++) {
+                        if (!mask[r][c]) continue;
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        dot.style.cssText = `width:${dotSize}px;height:${dotSize}px;left:${c * spacing}px;top:${r * spacing}px`;
+                        container.appendChild(dot);
+                    }
+                }
+
+                // Edges & Shapes
+                if (game.mode === 'square') {
+                    for (let r = 0; r < game.height; r++) {
+                        for (let c = 0; c < game.width - 1; c++) {
+                            if (!mask[r][c] || !mask[r][c + 1]) continue;
+                            const key = `h-${r}-${c}`;
+                            const edge = document.createElement('div');
+                            edge.className = 'edge h-edge';
+                            edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
+                            if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                            else edge.onclick = () => handleEdgeClick(key);
+                            container.appendChild(edge);
+                        }
+                    }
+                    for (let r = 0; r < game.height - 1; r++) {
+                        for (let c = 0; c < game.width; c++) {
+                            if (!mask[r][c] || !mask[r + 1][c]) continue;
+                            const key = `v-${r}-${c}`;
+                            const edge = document.createElement('div');
+                            edge.className = 'edge v-edge';
+                            edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
+                            if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                            else edge.onclick = () => handleEdgeClick(key);
+                            container.appendChild(edge);
+                        }
+                    }
+                    for (let r = 0; r < game.height - 1; r++) {
+                        for (let c = 0; c < game.width - 1; c++) {
+                            if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
+                            const box = game.boxes[r][c];
+                            if (box.completed) {
+                                const shape = document.createElement('div');
+                                shape.className = `shape completed p${box.owner}`;
+                                shape.style.cssText = `width:${spacing - dotSize}px;height:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
+                                shape.textContent = box.owner === 0 ? '●' : '○';
+                                container.appendChild(shape);
+                            }
+                        }
+                    }
+                } else {
+                    // Triangle mode edges
+                    for (let r = 0; r < game.height; r++) {
+                        for (let c = 0; c < game.width - 1; c++) {
+                            if (!mask[r][c] || !mask[r][c + 1]) continue;
+                            const key = `h-${r}-${c}`;
+                            const edge = document.createElement('div');
+                            edge.className = 'edge h-edge';
+                            edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
+                            if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                            else edge.onclick = () => handleEdgeClick(key);
+                            container.appendChild(edge);
+                        }
+                    }
+                    for (let r = 0; r < game.height - 1; r++) {
+                        for (let c = 0; c < game.width; c++) {
+                            if (!mask[r][c] || !mask[r + 1][c]) continue;
+                            const key = `v-${r}-${c}`;
+                            const edge = document.createElement('div');
+                            edge.className = 'edge v-edge';
+                            edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
+                            if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                            else edge.onclick = () => handleEdgeClick(key);
+                            container.appendChild(edge);
+                        }
+                    }
+                    for (let r = 0; r < game.height - 1; r++) {
+                        for (let c = 0; c < game.width - 1; c++) {
+                            if (!mask[r][c] || !mask[r + 1][c + 1]) continue;
+                            const key = `d-${r}-${c}`;
+                            const edge = document.createElement('div');
+                            edge.className = 'edge d-edge';
+                            const diagLen = Math.sqrt(2) * (spacing - dotSize);
+                            edge.style.cssText = `width:${diagLen}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2}px;transform:rotate(45deg)`;
+                            if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
+                            else edge.onclick = () => handleEdgeClick(key);
+                            container.appendChild(edge);
+                        }
+                    }
+                    // Triangles
+                    for (let r = 0; r < game.height - 1; r++) {
+                        for (let c = 0; c < game.width - 1; c++) {
+                            if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
+                            const triCell = game.triangles[r][c];
+                            if (triCell.upper.completed) {
+                                const shape = document.createElement('div');
+                                shape.className = `shape triangle completed p${triCell.upper.owner}`;
+                                shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
+                                container.appendChild(shape);
+                            }
+                            if (triCell.lower.completed) {
+                                const shape = document.createElement('div');
+                                shape.className = `shape triangle inverted completed p${triCell.lower.owner}`;
+                                shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize + (spacing - dotSize) / 2}px`;
+                                container.appendChild(shape);
+                            }
+                        }
+                    }
+                }
+                updateUI();
+            }
+
+            function updateUI() {
+                document.getElementById('score1').textContent = game.scores[0];
+                document.getElementById('score2').textContent = game.scores[1];
+                document.getElementById('player1Info').classList.toggle('active', game.currentPlayer === 0);
+                document.getElementById('player2Info').classList.toggle('active', game.currentPlayer === 1);
+                document.getElementById('turnDot').className = 'dot p' + (game.currentPlayer + 1);
+                document.getElementById('player2Name').textContent = config.isSinglePlayer ? 'COMPUTER' : 'PLAYER 2';
+                if (game.winner !== null) showWinner();
+            }
+
+            function handleEdgeClick(edgeKey) {
+                if (game.winner !== null) return;
+                if (config.isSinglePlayer && game.currentPlayer === 1) return;
+                history.push(JSON.parse(JSON.stringify(game)));
+                const result = game.mode === 'square' ? makeMoveSquare(game, edgeKey) : makeMoveTriangle(game, edgeKey);
+                if (result.isValid) {
+                    game = result.newGame;
+                    renderBoard();
+                    if (config.isSinglePlayer && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
+                }
+            }
+
+            function aiTurn() {
+                if (game.winner !== null) return;
+                const move = getAIMove(game);
+                if (!move) return;
+                history.push(JSON.parse(JSON.stringify(game)));
+                const result = game.mode === 'square' ? makeMoveSquare(game, move) : makeMoveTriangle(game, move);
+                if (result.isValid) {
+                    game = result.newGame;
+                    renderBoard();
+                    const hasCompleted = game.mode === 'square' ? result.completedBoxes?.length > 0 : result.completedTriangles?.length > 0;
+                    if (hasCompleted && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
+                }
+            }
+
+            function startGame(type) {
+                config.isSinglePlayer = (type === 'single');
+                config.mode = document.getElementById('gameMode').value;
+                config.shape = document.getElementById('boardShape').value;
+                const [w, h] = document.getElementById('difficulty').value.split('x').map(Number);
+                config.width = w;
+                config.height = h;
+                game = config.mode === 'square' ? createSquareGame(w, h) : createTriangleGame(w, h);
+                history = [];
+                document.getElementById('mainMenu').classList.add('hidden');
+                document.getElementById('gameScreen').classList.add('active');
+                setTimeout(renderBoard, 50);
+            }
+
+            function restartGame() {
+                document.getElementById('winnerOverlay').classList.remove('show');
+                game = config.mode === 'square' ? createSquareGame(config.width, config.height) : createTriangleGame(config.width, config.height);
+                history = [];
+                renderBoard();
+            }
+
+            function undoMove() {
+                if (history.length > 0) { game = history.pop(); renderBoard(); }
+            }
+
+            function goToMenu() {
+                document.getElementById('winnerOverlay').classList.remove('show');
+                document.getElementById('gameScreen').classList.remove('active');
+                document.getElementById('mainMenu').classList.remove('hidden');
+            }
+
+            function showWinner() {
+                document.getElementById('winnerOverlay').classList.add('show');
+                const title = document.getElementById('winnerTitle');
+                if (game.winner === -1) title.textContent = '🤝 무승부!';
+                else if (game.winner === 0) title.textContent = '🎉 플레이어 1 승리!';
+                else title.textContent = config.isSinglePlayer ? '🤖 컴퓨터 승리!' : '🎉 플레이어 2 승리!';
+                document.getElementById('finalScore').textContent = `${game.scores[0]} : ${game.scores[1]}`;
+            }
+
+            // 화면 회전/리사이즈 시 다시 그리기
+            window.addEventListener('resize', () => { if (game) renderBoard(); });
+
+            // Home Button Event Listener
+            document.getElementById('btnHome').addEventListener('click', () => {
+                window.location.href = 'lobby.html';
+            });
+            // Initialize
+            window.onload = function () {
+                // Check for mode parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const mode = urlParams.get('mode');
+                const sessionId = urlParams.get('sessionId');
+
+                if (mode === 'single') {
+                    startGame('single');
+                } else if (sessionId) {
+                    // Multiplayer join logic would go here if not already handled
+                    // Current implementation might strictly need more logic, but for now specific to practice mode.
+                }
             };
-        }
-
-        function getEdgeKey(type, row, col) { return `${type}-${row}-${col}`; }
-        function isValidMove(game, edgeKey) { return !game.edges.includes(edgeKey); }
-
-        function makeMoveSquare(game, edgeKey) {
-            if (!isValidMove(game, edgeKey)) return { isValid: false };
-            const newGame = JSON.parse(JSON.stringify(game));
-            newGame.edges.push(edgeKey);
-            newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
-
-            const completedBoxes = [];
-            const edges = new Set(newGame.edges);
-
-            function isBoxComplete(r, c) {
-                return edges.has(`h-${r}-${c}`) && edges.has(`h-${r + 1}-${c}`) &&
-                    edges.has(`v-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
-            }
-
-            function claimBoxEdges(r, c, owner) {
-                [`h-${r}-${c}`, `h-${r + 1}-${c}`, `v-${r}-${c}`, `v-${r}-${c + 1}`]
-                    .forEach(k => newGame.edgeOwners[k] = owner);
-            }
-
-            const [type, rowStr, colStr] = edgeKey.split('-');
-            const row = parseInt(rowStr), col = parseInt(colStr);
-
-            if (type === 'h') {
-                if (row < newGame.height - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
-                    newGame.boxes[row][col].completed = true;
-                    newGame.boxes[row][col].owner = newGame.currentPlayer;
-                    completedBoxes.push({ row, col });
-                    claimBoxEdges(row, col, newGame.currentPlayer);
-                }
-                if (row > 0 && newGame.boxes[row - 1]?.[col] && !newGame.boxes[row - 1][col].completed && isBoxComplete(row - 1, col)) {
-                    newGame.boxes[row - 1][col].completed = true;
-                    newGame.boxes[row - 1][col].owner = newGame.currentPlayer;
-                    completedBoxes.push({ row: row - 1, col });
-                    claimBoxEdges(row - 1, col, newGame.currentPlayer);
-                }
-            } else {
-                if (col < newGame.width - 1 && newGame.boxes[row]?.[col] && !newGame.boxes[row][col].completed && isBoxComplete(row, col)) {
-                    newGame.boxes[row][col].completed = true;
-                    newGame.boxes[row][col].owner = newGame.currentPlayer;
-                    completedBoxes.push({ row, col });
-                    claimBoxEdges(row, col, newGame.currentPlayer);
-                }
-                if (col > 0 && newGame.boxes[row]?.[col - 1] && !newGame.boxes[row][col - 1].completed && isBoxComplete(row, col - 1)) {
-                    newGame.boxes[row][col - 1].completed = true;
-                    newGame.boxes[row][col - 1].owner = newGame.currentPlayer;
-                    completedBoxes.push({ row, col: col - 1 });
-                    claimBoxEdges(row, col - 1, newGame.currentPlayer);
-                }
-            }
-
-            if (completedBoxes.length > 0) {
-                newGame.scores[newGame.currentPlayer] += completedBoxes.length;
-            } else {
-                newGame.currentPlayer = 1 - newGame.currentPlayer;
-            }
-
-            const totalBoxes = (newGame.width - 1) * (newGame.height - 1);
-            if (newGame.scores[0] + newGame.scores[1] === totalBoxes) {
-                newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
-            }
-
-            return { newGame, completedBoxes, isValid: true };
-        }
-
-        function makeMoveTriangle(game, edgeKey) {
-            if (!isValidMove(game, edgeKey)) return { isValid: false };
-            const newGame = JSON.parse(JSON.stringify(game));
-            newGame.edges.push(edgeKey);
-            newGame.edgeOwners[edgeKey] = newGame.currentPlayer;
-
-            const completedTriangles = [];
-            const edges = new Set(newGame.edges);
-
-            function isUpperTriComplete(r, c) {
-                return edges.has(`h-${r}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c}`);
-            }
-            function isLowerTriComplete(r, c) {
-                return edges.has(`h-${r + 1}-${c}`) && edges.has(`d-${r}-${c}`) && edges.has(`v-${r}-${c + 1}`);
-            }
-
-            const [type, rowStr, colStr] = edgeKey.split('-');
-            const row = parseInt(rowStr), col = parseInt(colStr);
-            const cellsToCheck = [];
-
-            if (type === 'h') {
-                if (row < newGame.height - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
-                if (row > 0) cellsToCheck.push({ r: row - 1, c: col, tri: 'lower' });
-            } else if (type === 'v') {
-                if (col < newGame.width - 1) cellsToCheck.push({ r: row, c: col, tri: 'upper' });
-                if (col > 0) cellsToCheck.push({ r: row, c: col - 1, tri: 'lower' });
-            } else if (type === 'd') {
-                cellsToCheck.push({ r: row, c: col, tri: 'upper' });
-                cellsToCheck.push({ r: row, c: col, tri: 'lower' });
-            }
-
-            for (const cell of cellsToCheck) {
-                const { r, c, tri } = cell;
-                if (r < 0 || r >= newGame.height - 1 || c < 0 || c >= newGame.width - 1) continue;
-                const triObj = newGame.triangles[r][c][tri];
-                if (triObj.completed) continue;
-                const isComplete = tri === 'upper' ? isUpperTriComplete(r, c) : isLowerTriComplete(r, c);
-                if (isComplete) {
-                    triObj.completed = true;
-                    triObj.owner = newGame.currentPlayer;
-                    completedTriangles.push({ r, c, tri });
-                }
-            }
-
-            if (completedTriangles.length > 0) {
-                newGame.scores[newGame.currentPlayer] += completedTriangles.length;
-            } else {
-                newGame.currentPlayer = 1 - newGame.currentPlayer;
-            }
-
-            const totalTris = (newGame.width - 1) * (newGame.height - 1) * 2;
-            if (newGame.scores[0] + newGame.scores[1] === totalTris) {
-                newGame.winner = newGame.scores[0] > newGame.scores[1] ? 0 : newGame.scores[1] > newGame.scores[0] ? 1 : -1;
-            }
-
-            return { newGame, completedTriangles, isValid: true };
-        }
-
-        // ===== AI =====
-        function getAIMove(game) {
-            const validEdges = [];
-            if (game.mode === 'square') {
-                for (let r = 0; r < game.height; r++)
-                    for (let c = 0; c < game.width - 1; c++)
-                        if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
-                for (let r = 0; r < game.height - 1; r++)
-                    for (let c = 0; c < game.width; c++)
-                        if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
-                for (const edge of validEdges) {
-                    const result = makeMoveSquare(game, edge);
-                    if (result.isValid && result.completedBoxes.length > 0) return edge;
-                }
-            } else {
-                for (let r = 0; r < game.height; r++)
-                    for (let c = 0; c < game.width - 1; c++)
-                        if (isValidMove(game, `h-${r}-${c}`)) validEdges.push(`h-${r}-${c}`);
-                for (let r = 0; r < game.height - 1; r++)
-                    for (let c = 0; c < game.width; c++)
-                        if (isValidMove(game, `v-${r}-${c}`)) validEdges.push(`v-${r}-${c}`);
-                for (let r = 0; r < game.height - 1; r++)
-                    for (let c = 0; c < game.width - 1; c++)
-                        if (isValidMove(game, `d-${r}-${c}`)) validEdges.push(`d-${r}-${c}`);
-                for (const edge of validEdges) {
-                    const result = makeMoveTriangle(game, edge);
-                    if (result.isValid && result.completedTriangles?.length > 0) return edge;
-                }
-            }
-            return validEdges[Math.floor(Math.random() * validEdges.length)];
-        }
-
-        // ===== 보드 모양 마스크 =====
-        function getShapeMask(width, height, shape) {
-            const mask = [];
-            for (let r = 0; r < height; r++) {
-                mask[r] = [];
-                for (let c = 0; c < width; c++) mask[r][c] = true;
-            }
-            if (shape === 'rectangle') return mask;
-
-            const cx = (width - 1) / 2, cy = (height - 1) / 2;
-            const maxR = Math.min(cx, cy);
-
-            for (let r = 0; r < height; r++) {
-                for (let c = 0; c < width; c++) {
-                    const dx = c - cx, dy = r - cy;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx);
-
-                    if (shape === 'circle') mask[r][c] = dist <= maxR + 0.5;
-                    else if (shape === 'star') mask[r][c] = dist <= maxR * (0.5 + 0.5 * Math.abs(Math.sin(angle * 2.5))) + 0.5;
-                    else if (shape === 'heart') {
-                        const x = dx / maxR, y = (cy - r) / maxR;
-                        mask[r][c] = Math.pow(x * x + y * y - 1, 3) - x * x * y * y * y <= 0.3;
-                    }
-                    else if (shape === 'flower') mask[r][c] = dist <= maxR * (0.5 + 0.4 * Math.abs(Math.cos(angle * 3))) + 0.3;
-                    else if (shape === 'car') {
-                        const relY = r / (height - 1), relX = c / (width - 1);
-                        const isBody = relY > 0.3 && relY < 0.85;
-                        const isRoof = relY >= 0.15 && relY <= 0.35 && relX > 0.25 && relX < 0.75;
-                        const isWheel = relY >= 0.75 && (relX < 0.25 || relX > 0.75);
-                        mask[r][c] = (isBody || isRoof) && !isWheel;
-                    }
-                }
-            }
-            return mask;
-        }
-
-        // ===== 렌더링 =====
-        function renderBoard() {
-            const container = document.getElementById('boardContainer');
-            container.innerHTML = '';
-
-            const sizes = calculateSizes(game.width, game.height);
-            const { dotSize, spacing, edgeThickness } = sizes;
-            container.style.setProperty('--edge-thickness', edgeThickness + 'px');
-
-            const boardWidth = (game.width - 1) * spacing + dotSize;
-            const boardHeight = (game.height - 1) * spacing + dotSize;
-            container.style.width = boardWidth + 'px';
-            container.style.height = boardHeight + 'px';
-
-            const mask = getShapeMask(game.width, game.height, config.shape);
-
-            // Dots
-            for (let r = 0; r < game.height; r++) {
-                for (let c = 0; c < game.width; c++) {
-                    if (!mask[r][c]) continue;
-                    const dot = document.createElement('div');
-                    dot.className = 'dot';
-                    dot.style.cssText = `width:${dotSize}px;height:${dotSize}px;left:${c * spacing}px;top:${r * spacing}px`;
-                    container.appendChild(dot);
-                }
-            }
-
-            // Edges & Shapes
-            if (game.mode === 'square') {
-                for (let r = 0; r < game.height; r++) {
-                    for (let c = 0; c < game.width - 1; c++) {
-                        if (!mask[r][c] || !mask[r][c + 1]) continue;
-                        const key = `h-${r}-${c}`;
-                        const edge = document.createElement('div');
-                        edge.className = 'edge h-edge';
-                        edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
-                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
-                        else edge.onclick = () => handleEdgeClick(key);
-                        container.appendChild(edge);
-                    }
-                }
-                for (let r = 0; r < game.height - 1; r++) {
-                    for (let c = 0; c < game.width; c++) {
-                        if (!mask[r][c] || !mask[r + 1][c]) continue;
-                        const key = `v-${r}-${c}`;
-                        const edge = document.createElement('div');
-                        edge.className = 'edge v-edge';
-                        edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
-                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
-                        else edge.onclick = () => handleEdgeClick(key);
-                        container.appendChild(edge);
-                    }
-                }
-                for (let r = 0; r < game.height - 1; r++) {
-                    for (let c = 0; c < game.width - 1; c++) {
-                        if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
-                        const box = game.boxes[r][c];
-                        if (box.completed) {
-                            const shape = document.createElement('div');
-                            shape.className = `shape completed p${box.owner}`;
-                            shape.style.cssText = `width:${spacing - dotSize}px;height:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
-                            shape.textContent = box.owner === 0 ? '●' : '○';
-                            container.appendChild(shape);
-                        }
-                    }
-                }
-            } else {
-                // Triangle mode edges
-                for (let r = 0; r < game.height; r++) {
-                    for (let c = 0; c < game.width - 1; c++) {
-                        if (!mask[r][c] || !mask[r][c + 1]) continue;
-                        const key = `h-${r}-${c}`;
-                        const edge = document.createElement('div');
-                        edge.className = 'edge h-edge';
-                        edge.style.cssText = `width:${spacing - dotSize}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2 - edgeThickness / 2}px`;
-                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
-                        else edge.onclick = () => handleEdgeClick(key);
-                        container.appendChild(edge);
-                    }
-                }
-                for (let r = 0; r < game.height - 1; r++) {
-                    for (let c = 0; c < game.width; c++) {
-                        if (!mask[r][c] || !mask[r + 1][c]) continue;
-                        const key = `v-${r}-${c}`;
-                        const edge = document.createElement('div');
-                        edge.className = 'edge v-edge';
-                        edge.style.cssText = `height:${spacing - dotSize}px;left:${c * spacing + dotSize / 2 - edgeThickness / 2}px;top:${r * spacing + dotSize}px`;
-                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
-                        else edge.onclick = () => handleEdgeClick(key);
-                        container.appendChild(edge);
-                    }
-                }
-                for (let r = 0; r < game.height - 1; r++) {
-                    for (let c = 0; c < game.width - 1; c++) {
-                        if (!mask[r][c] || !mask[r + 1][c + 1]) continue;
-                        const key = `d-${r}-${c}`;
-                        const edge = document.createElement('div');
-                        edge.className = 'edge d-edge';
-                        const diagLen = Math.sqrt(2) * (spacing - dotSize);
-                        edge.style.cssText = `width:${diagLen}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize / 2}px;transform:rotate(45deg)`;
-                        if (game.edges.includes(key)) edge.classList.add('filled', `p${game.edgeOwners[key]}`);
-                        else edge.onclick = () => handleEdgeClick(key);
-                        container.appendChild(edge);
-                    }
-                }
-                // Triangles
-                for (let r = 0; r < game.height - 1; r++) {
-                    for (let c = 0; c < game.width - 1; c++) {
-                        if (!mask[r][c] || !mask[r][c + 1] || !mask[r + 1][c] || !mask[r + 1][c + 1]) continue;
-                        const triCell = game.triangles[r][c];
-                        if (triCell.upper.completed) {
-                            const shape = document.createElement('div');
-                            shape.className = `shape triangle completed p${triCell.upper.owner}`;
-                            shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize}px`;
-                            container.appendChild(shape);
-                        }
-                        if (triCell.lower.completed) {
-                            const shape = document.createElement('div');
-                            shape.className = `shape triangle inverted completed p${triCell.lower.owner}`;
-                            shape.style.cssText = `width:${spacing - dotSize}px;height:${(spacing - dotSize) / 2}px;left:${c * spacing + dotSize}px;top:${r * spacing + dotSize + (spacing - dotSize) / 2}px`;
-                            container.appendChild(shape);
-                        }
-                    }
-                }
-            }
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('score1').textContent = game.scores[0];
-            document.getElementById('score2').textContent = game.scores[1];
-            document.getElementById('player1Info').classList.toggle('active', game.currentPlayer === 0);
-            document.getElementById('player2Info').classList.toggle('active', game.currentPlayer === 1);
-            document.getElementById('turnDot').className = 'dot p' + (game.currentPlayer + 1);
-            document.getElementById('player2Name').textContent = config.isSinglePlayer ? 'COMPUTER' : 'PLAYER 2';
-            if (game.winner !== null) showWinner();
-        }
-
-        function handleEdgeClick(edgeKey) {
-            if (game.winner !== null) return;
-            if (config.isSinglePlayer && game.currentPlayer === 1) return;
-            history.push(JSON.parse(JSON.stringify(game)));
-            const result = game.mode === 'square' ? makeMoveSquare(game, edgeKey) : makeMoveTriangle(game, edgeKey);
-            if (result.isValid) {
-                game = result.newGame;
-                renderBoard();
-                if (config.isSinglePlayer && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
-            }
-        }
-
-        function aiTurn() {
-            if (game.winner !== null) return;
-            const move = getAIMove(game);
-            if (!move) return;
-            history.push(JSON.parse(JSON.stringify(game)));
-            const result = game.mode === 'square' ? makeMoveSquare(game, move) : makeMoveTriangle(game, move);
-            if (result.isValid) {
-                game = result.newGame;
-                renderBoard();
-                const hasCompleted = game.mode === 'square' ? result.completedBoxes?.length > 0 : result.completedTriangles?.length > 0;
-                if (hasCompleted && game.currentPlayer === 1 && game.winner === null) setTimeout(aiTurn, 350);
-            }
-        }
-
-        function startGame(type) {
-            config.isSinglePlayer = (type === 'single');
-            config.mode = document.getElementById('gameMode').value;
-            config.shape = document.getElementById('boardShape').value;
-            const [w, h] = document.getElementById('difficulty').value.split('x').map(Number);
-            config.width = w;
-            config.height = h;
-            game = config.mode === 'square' ? createSquareGame(w, h) : createTriangleGame(w, h);
-            history = [];
-            document.getElementById('mainMenu').classList.add('hidden');
-            document.getElementById('gameScreen').classList.add('active');
-            setTimeout(renderBoard, 50);
-        }
-
-        function restartGame() {
-            document.getElementById('winnerOverlay').classList.remove('show');
-            game = config.mode === 'square' ? createSquareGame(config.width, config.height) : createTriangleGame(config.width, config.height);
-            history = [];
-            renderBoard();
-        }
-
-        function undoMove() {
-            if (history.length > 0) { game = history.pop(); renderBoard(); }
-        }
-
-        function goToMenu() {
-            document.getElementById('winnerOverlay').classList.remove('show');
-            document.getElementById('gameScreen').classList.remove('active');
-            document.getElementById('mainMenu').classList.remove('hidden');
-        }
-
-        function showWinner() {
-            document.getElementById('winnerOverlay').classList.add('show');
-            const title = document.getElementById('winnerTitle');
-            if (game.winner === -1) title.textContent = '🤝 무승부!';
-            else if (game.winner === 0) title.textContent = '🎉 플레이어 1 승리!';
-            else title.textContent = config.isSinglePlayer ? '🤖 컴퓨터 승리!' : '🎉 플레이어 2 승리!';
-            document.getElementById('finalScore').textContent = `${game.scores[0]} : ${game.scores[1]}`;
-        }
-
-        // 화면 회전/리사이즈 시 다시 그리기
-        window.addEventListener('resize', () => { if (game) renderBoard(); });
-        // Initialize
-        window.onload = function () {
-            // Check for mode parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode');
-            const sessionId = urlParams.get('sessionId');
-
-            if (mode === 'single') {
-                startGame('single');
-            } else if (sessionId) {
-                // Multiplayer join logic would go here if not already handled
-                // Current implementation might strictly need more logic, but for now specific to practice mode.
-            }
-        };
-    </script>
+        </script>
 </body>
 
 </html>
